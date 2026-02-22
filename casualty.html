@@ -4,13 +4,28 @@
     <meta charset="UTF-8">
     <title>Casualty View</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        #reloadBtn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #reloadBtn:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
 
 <h1>Casualty View</h1>
 
-<!-- Reload Page Button Top Right -->
-<button id="reloadBtn" style="position: absolute; top: 10px; right: 10px;">Reload Page</button>
+<button id="reloadBtn">Reload Page</button>
 
 <label>Scenario Number</label>
 <select id="scenarioNumberSelect">
@@ -36,145 +51,130 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
-  authDomain: "amkfac-c85a0.firebaseapp.com",
-  projectId: "amkfac-c85a0",
-  storageBucket: "amkfac-c85a0.firebasestorage.app",
-  messagingSenderId: "320355813529",
-  appId: "1:320355813529:web:a2e979ad989f95acbb5008"
-};
+document.addEventListener("DOMContentLoaded", () => {
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+    const firebaseConfig = {
+        apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
+        authDomain: "amkfac-c85a0.firebaseapp.com",
+        projectId: "amkfac-c85a0",
+        storageBucket: "amkfac-c85a0.firebasestorage.app",
+        messagingSenderId: "320355813529",
+        appId: "1:320355813529:web:a2e979ad989f95acbb5008"
+    };
 
-const scenarioSelect = document.getElementById("scenarioNumberSelect");
-const casualtySelect = document.getElementById("casualtyNameSelect");
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-const displayScenario = document.getElementById("displayScenario");
-const displayCasualty = document.getElementById("displayCasualty");
-const displayInjuries = document.getElementById("displayInjuries");
-const displayWhatHappened = document.getElementById("displayWhatHappened");
-const displayMedicalHistory = document.getElementById("displayMedicalHistory");
-const displayAllergies = document.getElementById("displayAllergies");
-const displayLastMeal = document.getElementById("displayLastMeal");
+    const scenarioSelect = document.getElementById("scenarioNumberSelect");
+    const casualtySelect = document.getElementById("casualtyNameSelect");
+    const displayScenario = document.getElementById("displayScenario");
+    const displayCasualty = document.getElementById("displayCasualty");
+    const displayInjuries = document.getElementById("displayInjuries");
+    const displayWhatHappened = document.getElementById("displayWhatHappened");
+    const displayMedicalHistory = document.getElementById("displayMedicalHistory");
+    const displayAllergies = document.getElementById("displayAllergies");
+    const displayLastMeal = document.getElementById("displayLastMeal");
+    const reloadBtn = document.getElementById("reloadBtn");
 
-const reloadBtn = document.getElementById("reloadBtn");
+    let allScenarios = [];
 
-let allScenarios = [];
+    // Restore previous selections from localStorage
+    const savedScenario = localStorage.getItem("selectedScenario");
+    const savedCasualty = localStorage.getItem("selectedCasualty");
 
-// Restore previous selections from localStorage
-const savedScenario = localStorage.getItem("selectedScenario");
-const savedCasualty = localStorage.getItem("selectedCasualty");
-
-// Reload button functionality
-reloadBtn.addEventListener("click", () => {
-    localStorage.setItem("selectedScenario", scenarioSelect.value);
-    localStorage.setItem("selectedCasualty", casualtySelect.value);
-    location.reload();
-});
-
-// Load all scenarios from Firestore
-const q = query(collection(db, "scenarios"));
-onSnapshot(q, snapshot => {
-    allScenarios = [];
-    snapshot.forEach(doc => allScenarios.push({ id: doc.id, ...doc.data() }));
-
-    // Populate scenario dropdown
-    const scenarioNumbers = [...new Set(allScenarios.map(s => s.scenarioNumber))];
-    scenarioSelect.innerHTML = '<option value="">-- Select Scenario --</option>';
-    scenarioNumbers.forEach(num => {
-        const option = document.createElement("option");
-        option.value = num;
-        option.textContent = num;
-        scenarioSelect.appendChild(option);
+    reloadBtn.addEventListener("click", () => {
+        localStorage.setItem("selectedScenario", scenarioSelect.value);
+        localStorage.setItem("selectedCasualty", casualtySelect.value);
+        location.reload();
     });
 
-    // Restore scenario selection
-    if (savedScenario) {
-        scenarioSelect.value = savedScenario;
-        updateCasualtyDropdown(savedScenario);
-    }
+    // Firestore listener
+    const q = query(collection(db, "scenarios"));
+    onSnapshot(q, snapshot => {
+        allScenarios = [];
+        snapshot.forEach(doc => allScenarios.push({ id: doc.id, ...doc.data() }));
 
-    // Restore casualty selection
-    if (savedScenario && savedCasualty) {
-        displaySelectedCasualty(savedCasualty, savedScenario);
-    }
-});
-
-// Update casualty dropdown based on selected scenario
-function updateCasualtyDropdown(selectedScenario) {
-    const casualties = allScenarios
-        .filter(s => s.scenarioNumber === selectedScenario)
-        .map(s => s.casualtyName);
-    const uniqueCasualties = [...new Set(casualties)];
-
-    casualtySelect.innerHTML = '<option value="">-- Select Casualty --</option>';
-    uniqueCasualties.forEach(name => {
-        const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        casualtySelect.appendChild(option);
-    });
-
-    clearDisplay();
-}
-
-// Scenario select listener
-scenarioSelect.addEventListener('change', () => {
-    updateCasualtyDropdown(scenarioSelect.value);
-});
-
-// Casualty select listener
-casualtySelect.addEventListener('change', () => {
-    displaySelectedCasualty(casualtySelect.value, scenarioSelect.value);
-});
-
-// Display casualty information
-function displaySelectedCasualty(selectedCasualty, selectedScenario) {
-    const match = allScenarios.find(s =>
-        s.scenarioNumber === selectedScenario &&
-        s.casualtyName === selectedCasualty
-    );
-
-    if (!match) return;
-
-    displayScenario.textContent = match.scenarioNumber;
-    displayCasualty.textContent = match.casualtyName;
-
-    // Injuries with images
-    displayInjuries.innerHTML = "";
-    if (match.visibility?.injuries) {
-        match.injuries.forEach(injury => {
-            const div = document.createElement("div");
-            div.style.marginBottom = "10px";
-            div.innerHTML = `<strong>${injury}</strong><br>`;
-            const img = document.createElement("img");
-            img.src = "images/" + injury.toLowerCase() + ".png"; // PNG supported
-            img.style.width = "150px";
-            img.onerror = function(){ this.style.display = "none"; }; // hide broken images
-            div.appendChild(img);
-            displayInjuries.appendChild(div);
+        const scenarioNumbers = [...new Set(allScenarios.map(s => s.scenarioNumber))];
+        scenarioSelect.innerHTML = '<option value="">-- Select Scenario --</option>';
+        scenarioNumbers.forEach(num => {
+            const option = document.createElement("option");
+            option.value = num;
+            option.textContent = num;
+            scenarioSelect.appendChild(option);
         });
+
+        // Restore previous selections
+        if (savedScenario) {
+            scenarioSelect.value = savedScenario;
+            updateCasualtyDropdown(savedScenario);
+        }
+        if (savedScenario && savedCasualty) {
+            displaySelectedCasualty(savedCasualty, savedScenario);
+        }
+    });
+
+    function updateCasualtyDropdown(selectedScenario) {
+        const casualties = allScenarios
+            .filter(s => s.scenarioNumber === selectedScenario)
+            .map(s => s.casualtyName);
+        const uniqueCasualties = [...new Set(casualties)];
+
+        casualtySelect.innerHTML = '<option value="">-- Select Casualty --</option>';
+        uniqueCasualties.forEach(name => {
+            const option = document.createElement("option");
+            option.value = name;
+            option.textContent = name;
+            casualtySelect.appendChild(option);
+        });
+        clearDisplay();
     }
 
-    displayWhatHappened.textContent = match.visibility?.whatHappened ? match.whatHappened : "";
-    displayMedicalHistory.textContent = match.visibility?.medicalHistory ? match.medicalHistory : "";
-    displayAllergies.textContent = match.visibility?.allergies ? match.allergies : "";
-    displayLastMeal.textContent = match.visibility?.lastMeal ? match.lastMeal : "";
-}
+    scenarioSelect.addEventListener('change', () => updateCasualtyDropdown(scenarioSelect.value));
+    casualtySelect.addEventListener('change', () => displaySelectedCasualty(casualtySelect.value, scenarioSelect.value));
 
-// Clear displayed info
-function clearDisplay() {
-    displayScenario.textContent = '';
-    displayCasualty.textContent = '';
-    displayInjuries.innerHTML = '';
-    displayWhatHappened.textContent = '';
-    displayMedicalHistory.textContent = '';
-    displayAllergies.textContent = '';
-    displayLastMeal.textContent = '';
-}
+    function displaySelectedCasualty(selectedCasualty, selectedScenario) {
+        const match = allScenarios.find(s =>
+            s.scenarioNumber === selectedScenario &&
+            s.casualtyName === selectedCasualty
+        );
+
+        if (!match) return;
+
+        displayScenario.textContent = match.scenarioNumber;
+        displayCasualty.textContent = match.casualtyName;
+
+        displayInjuries.innerHTML = "";
+        if (match.visibility?.injuries) {
+            match.injuries.forEach(injury => {
+                const div = document.createElement("div");
+                div.style.marginBottom = "10px";
+                div.innerHTML = `<strong>${injury}</strong><br>`;
+                const img = document.createElement("img");
+                img.src = "images/" + injury.toLowerCase() + ".png";
+                img.style.width = "150px";
+                img.onerror = function(){ this.style.display = "none"; };
+                div.appendChild(img);
+                displayInjuries.appendChild(div);
+            });
+        }
+
+        displayWhatHappened.textContent = match.visibility?.whatHappened ? match.whatHappened : "";
+        displayMedicalHistory.textContent = match.visibility?.medicalHistory ? match.medicalHistory : "";
+        displayAllergies.textContent = match.visibility?.allergies ? match.allergies : "";
+        displayLastMeal.textContent = match.visibility?.lastMeal ? match.lastMeal : "";
+    }
+
+    function clearDisplay() {
+        displayScenario.textContent = '';
+        displayCasualty.textContent = '';
+        displayInjuries.innerHTML = '';
+        displayWhatHappened.textContent = '';
+        displayMedicalHistory.textContent = '';
+        displayAllergies.textContent = '';
+        displayLastMeal.textContent = '';
+    }
+
+});
 </script>
 
 </body>
