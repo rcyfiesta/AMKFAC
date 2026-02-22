@@ -9,10 +9,14 @@
     <h1>Casualty View</h1>
 
     <label>Scenario Number</label>
-    <input type="text" id="scenarioNumberInput">
+    <select id="scenarioNumberSelect">
+        <option value="">-- Select Scenario --</option>
+    </select>
 
     <label>Casualty Name</label>
-    <input type="text" id="casualtyNameInput">
+    <select id="casualtyNameSelect">
+        <option value="">-- Select Casualty --</option>
+    </select>
 
     <div id="casualtyInfo">
         <p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
@@ -26,7 +30,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-        import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+        import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         const firebaseConfig = {
           apiKey: "YOUR_API_KEY",
@@ -40,8 +44,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const scenarioInput = document.getElementById("scenarioNumberInput");
-        const casualtyInput = document.getElementById("casualtyNameInput");
+        const scenarioSelect = document.getElementById("scenarioNumberSelect");
+        const casualtySelect = document.getElementById("casualtyNameSelect");
 
         const displayScenario = document.getElementById("displayScenario");
         const displayCasualty = document.getElementById("displayCasualty");
@@ -51,38 +55,73 @@
         const displayAllergies = document.getElementById("displayAllergies");
         const displayLastMeal = document.getElementById("displayLastMeal");
 
-        function listenScenarios(scenarioNumber, casualtyName) {
-            const q = query(collection(db, "scenarios"), orderBy("timestamp", "desc"));
-            onSnapshot(q, snapshot => {
-                let found = false;
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    if(data.scenarioNumber === scenarioNumber && data.casualtyName === casualtyName) {
-                        displayScenario.textContent = data.scenarioNumber;
-                        displayCasualty.textContent = data.casualtyName;
-                        displayInjuries.textContent = data.injuries;
-                        displayWhatHappened.textContent = data.whatHappened;
-                        displayMedicalHistory.textContent = data.medicalHistory;
-                        displayAllergies.textContent = data.allergies;
-                        displayLastMeal.textContent = data.lastMeal;
-                        found = true;
-                    }
-                });
-                if(!found) {
-                    displayScenario.textContent = '';
-                    displayCasualty.textContent = '';
-                    displayInjuries.textContent = '';
-                    displayWhatHappened.textContent = '';
-                    displayMedicalHistory.textContent = '';
-                    displayAllergies.textContent = '';
-                    displayLastMeal.textContent = '';
-                }
+        // Store all scenarios locally
+        let allScenarios = [];
+
+        // Listen to all scenarios in Firestore
+        const q = query(collection(db, "scenarios"));
+        onSnapshot(q, snapshot => {
+            allScenarios = [];
+            snapshot.forEach(doc => allScenarios.push(doc.data()));
+
+            // Populate scenario dropdown (unique scenario numbers)
+            const scenarioNumbers = [...new Set(allScenarios.map(s => s.scenarioNumber))];
+            scenarioSelect.innerHTML = '<option value="">-- Select Scenario --</option>';
+            scenarioNumbers.forEach(num => {
+                const option = document.createElement("option");
+                option.value = num;
+                option.textContent = num;
+                scenarioSelect.appendChild(option);
             });
+
+            // Trigger casualty update if scenario already selected
+            updateCasualtyOptions();
+        });
+
+        // Update casualty dropdown based on selected scenario
+        function updateCasualtyOptions() {
+            const selectedScenario = scenarioSelect.value;
+            const casualties = allScenarios
+                .filter(s => s.scenarioNumber === selectedScenario)
+                .map(s => s.casualtyName);
+            const uniqueCasualties = [...new Set(casualties)];
+
+            casualtySelect.innerHTML = '<option value="">-- Select Casualty --</option>';
+            uniqueCasualties.forEach(name => {
+                const option = document.createElement("option");
+                option.value = name;
+                option.textContent = name;
+                casualtySelect.appendChild(option);
+            });
+
+            // Clear display when scenario changes
+            displayScenario.textContent = '';
+            displayCasualty.textContent = '';
+            displayInjuries.textContent = '';
+            displayWhatHappened.textContent = '';
+            displayMedicalHistory.textContent = '';
+            displayAllergies.textContent = '';
+            displayLastMeal.textContent = '';
         }
 
-        // Update listener when inputs change
-        scenarioInput.addEventListener('input', () => listenScenarios(scenarioInput.value.trim(), casualtyInput.value.trim()));
-        casualtyInput.addEventListener('input', () => listenScenarios(scenarioInput.value.trim(), casualtyInput.value.trim()));
+        scenarioSelect.addEventListener('change', updateCasualtyOptions);
+
+        // Display info when casualty selected
+        casualtySelect.addEventListener('change', () => {
+            const selectedScenario = scenarioSelect.value;
+            const selectedCasualty = casualtySelect.value;
+            const data = allScenarios.find(s => s.scenarioNumber === selectedScenario && s.casualtyName === selectedCasualty);
+
+            if(data) {
+                displayScenario.textContent = data.scenarioNumber;
+                displayCasualty.textContent = data.casualtyName;
+                displayInjuries.textContent = data.injuries;
+                displayWhatHappened.textContent = data.whatHappened;
+                displayMedicalHistory.textContent = data.medicalHistory;
+                displayAllergies.textContent = data.allergies;
+                displayLastMeal.textContent = data.lastMeal;
+            }
+        });
 
     </script>
 </body>
