@@ -1,17 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Feedback Collation</title>
-    <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<title>Trainer Feedback</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Feedback</h1>
 
-    <div id="feedbackDisplay">
-        <!-- Feedback for each scenario and casualty will appear here -->
-    </div>
+<h1>Trainer Feedback</h1>
 
-    <script type="module" src="script.js"></script>
+<div id="feedbackList"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
+  authDomain: "amkfac-c85a0.firebaseapp.com",
+  projectId: "amkfac-c85a0",
+  storageBucket: "amkfac-c85a0.firebasestorage.app",
+  messagingSenderId: "320355813529",
+  appId: "1:320355813529:web:a2e979ad989f95acbb5008"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const feedbackList = document.getElementById("feedbackList");
+
+const q = query(collection(db, "scenarios"));
+onSnapshot(q, snapshot => {
+    feedbackList.innerHTML = ""; // clear old list
+    snapshot.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.feedback) {
+            const scenario = data.scenarioNumber;
+            const casualty = data.casualtyName;
+
+            for (const [injury, feedbackText] of Object.entries(data.feedback)) {
+                const div = document.createElement("div");
+                div.style.border = "1px solid #ccc";
+                div.style.padding = "10px";
+                div.style.marginBottom = "10px";
+                div.innerHTML = `<strong>Scenario:</strong> ${scenario}<br>
+                                 <strong>Casualty:</strong> ${casualty}<br>
+                                 <strong>Injury:</strong> ${injury}<br>
+                                 <strong>Feedback:</strong> ${feedbackText}`;
+                feedbackList.appendChild(div);
+            }
+        }
+    });
+});
+</script>
+
 </body>
 </html>
