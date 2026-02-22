@@ -10,12 +10,12 @@
 
     <label>Scenario Number</label>
     <select id="scenarioNumberSelect">
-        <option value="">-- Select Scenario --</option>
+        <option value="">-- Loading scenarios --</option>
     </select>
 
     <label>Casualty Name</label>
     <select id="casualtyNameSelect">
-        <option value="">-- Select Casualty --</option>
+        <option value="">-- Select Scenario First --</option>
     </select>
 
     <div id="casualtyInfo">
@@ -33,12 +33,12 @@
         import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
         const firebaseConfig = {
-          apiKey: "YOUR_API_KEY",
-          authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-          projectId: "YOUR_PROJECT_ID",
-          storageBucket: "YOUR_PROJECT_ID.appspot.com",
-          messagingSenderId: "YOUR_SENDER_ID",
-          appId: "YOUR_APP_ID"
+          apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
+          authDomain: "amkfac-c85a0.firebaseapp.com",
+          projectId: "amkfac-c85a0",
+          storageBucket: "amkfac-c85a0.firebasestorage.app",
+          messagingSenderId: "320355813529",
+          appId: "1:320355813529:web:a2e979ad989f95acbb5008"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -55,7 +55,6 @@
         const displayAllergies = document.getElementById("displayAllergies");
         const displayLastMeal = document.getElementById("displayLastMeal");
 
-        // Store all scenarios locally
         let allScenarios = [];
 
         // Listen to all scenarios in Firestore
@@ -64,35 +63,44 @@
             allScenarios = [];
             snapshot.forEach(doc => allScenarios.push(doc.data()));
 
-            // Populate scenario dropdown (unique scenario numbers)
+            // Populate scenario dropdown
             const scenarioNumbers = [...new Set(allScenarios.map(s => s.scenarioNumber))];
             scenarioSelect.innerHTML = '<option value="">-- Select Scenario --</option>';
-            scenarioNumbers.forEach(num => {
-                const option = document.createElement("option");
-                option.value = num;
-                option.textContent = num;
-                scenarioSelect.appendChild(option);
-            });
+            if(scenarioNumbers.length === 0){
+                scenarioSelect.innerHTML = '<option value="">-- No scenarios available --</option>';
+            } else {
+                scenarioNumbers.forEach(num => {
+                    const option = document.createElement("option");
+                    option.value = num;
+                    option.textContent = num;
+                    scenarioSelect.appendChild(option);
+                });
+            }
 
-            // Trigger casualty update if scenario already selected
-            updateCasualtyOptions();
+            // Clear casualty dropdown initially
+            casualtySelect.innerHTML = '<option value="">-- Select Scenario First --</option>';
         });
 
-        // Update casualty dropdown based on selected scenario
-        function updateCasualtyOptions() {
+        scenarioSelect.addEventListener('change', () => {
             const selectedScenario = scenarioSelect.value;
+
+            // Populate casualty dropdown for selected scenario
             const casualties = allScenarios
                 .filter(s => s.scenarioNumber === selectedScenario)
                 .map(s => s.casualtyName);
             const uniqueCasualties = [...new Set(casualties)];
 
             casualtySelect.innerHTML = '<option value="">-- Select Casualty --</option>';
-            uniqueCasualties.forEach(name => {
-                const option = document.createElement("option");
-                option.value = name;
-                option.textContent = name;
-                casualtySelect.appendChild(option);
-            });
+            if(uniqueCasualties.length === 0){
+                casualtySelect.innerHTML = '<option value="">-- No casualties for this scenario --</option>';
+            } else {
+                uniqueCasualties.forEach(name => {
+                    const option = document.createElement("option");
+                    option.value = name;
+                    option.textContent = name;
+                    casualtySelect.appendChild(option);
+                });
+            }
 
             // Clear display when scenario changes
             displayScenario.textContent = '';
@@ -102,11 +110,8 @@
             displayMedicalHistory.textContent = '';
             displayAllergies.textContent = '';
             displayLastMeal.textContent = '';
-        }
+        });
 
-        scenarioSelect.addEventListener('change', updateCasualtyOptions);
-
-        // Display info when casualty selected
         casualtySelect.addEventListener('change', () => {
             const selectedScenario = scenarioSelect.value;
             const selectedCasualty = casualtySelect.value;
@@ -122,7 +127,6 @@
                 displayLastMeal.textContent = data.lastMeal;
             }
         });
-
     </script>
 </body>
 </html>
