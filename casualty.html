@@ -1,3 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Casualty View</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<h1>Casualty View</h1>
+
+<label>Scenario Number</label>
+<select id="scenarioNumberSelect">
+    <option value="">-- Loading scenarios --</option>
+</select>
+
+<label>Casualty Name</label>
+<select id="casualtyNameSelect">
+    <option value="">-- Select Scenario First --</option>
+</select>
+
+<div id="casualtyInfo">
+    <p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
+    <p><strong>Casualty:</strong> <span id="displayCasualty"></span></p>
+    <div id="displayInjuries"></div>
+    <p><strong>What Happened:</strong> <span id="displayWhatHappened"></span></p>
+    <p><strong>Medical History:</strong> <span id="displayMedicalHistory"></span></p>
+    <p><strong>Drug Allergies:</strong> <span id="displayAllergies"></span></p>
+    <p><strong>Last Meal:</strong> <span id="displayLastMeal"></span></p>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
@@ -28,7 +59,7 @@ const displayLastMeal = document.getElementById("displayLastMeal");
 
 let allScenarios = [];
 
-// 1️⃣ Real-time listener for all scenarios
+// Load all scenarios and listen for updates
 const q = query(collection(db, "scenarios"));
 onSnapshot(q, snapshot => {
     allScenarios = [];
@@ -44,15 +75,18 @@ onSnapshot(q, snapshot => {
         scenarioSelect.appendChild(option);
     });
 
-    // Update casualty dropdown if scenario already selected
-    if (scenarioSelect.value) updateCasualtyDropdown(scenarioSelect.value);
+    // Reset casualty dropdown
+    casualtySelect.innerHTML = '<option value="">-- Select Scenario First --</option>';
 
-    // Update casualty display if casualty already selected
-    if (casualtySelect.value) displaySelectedCasualty(casualtySelect.value, scenarioSelect.value);
+    // If a casualty is already selected, refresh display automatically
+    if (scenarioSelect.value && casualtySelect.value) {
+        updateDisplay(scenarioSelect.value, casualtySelect.value);
+    }
 });
 
-// 2️⃣ Update casualty dropdown
-function updateCasualtyDropdown(selectedScenario) {
+// Update casualty dropdown on scenario selection
+scenarioSelect.addEventListener('change', () => {
+    const selectedScenario = scenarioSelect.value;
     const casualties = allScenarios
         .filter(s => s.scenarioNumber === selectedScenario)
         .map(s => s.casualtyName);
@@ -65,42 +99,43 @@ function updateCasualtyDropdown(selectedScenario) {
         option.textContent = name;
         casualtySelect.appendChild(option);
     });
+
     clearDisplay();
-}
-
-// 3️⃣ Scenario dropdown listener
-scenarioSelect.addEventListener('change', () => {
-    updateCasualtyDropdown(scenarioSelect.value);
 });
 
-// 4️⃣ Casualty dropdown listener
+// Update display when casualty is selected
 casualtySelect.addEventListener('change', () => {
-    displaySelectedCasualty(casualtySelect.value, scenarioSelect.value);
+    const selectedScenario = scenarioSelect.value;
+    const selectedCasualty = casualtySelect.value;
+    updateDisplay(selectedScenario, selectedCasualty);
 });
 
-// 5️⃣ Function to display casualty info
-function displaySelectedCasualty(selectedCasualty, selectedScenario) {
+// Function to render casualty info safely
+function updateDisplay(selectedScenario, selectedCasualty) {
     const match = allScenarios.find(s =>
         s.scenarioNumber === selectedScenario &&
         s.casualtyName === selectedCasualty
     );
 
-    if (!match) return;
+    if (!match) {
+        clearDisplay();
+        return;
+    }
 
-    displayScenario.textContent = match.scenarioNumber;
-    displayCasualty.textContent = match.casualtyName;
+    displayScenario.textContent = match.scenarioNumber || "";
+    displayCasualty.textContent = match.casualtyName || "";
 
     // Injuries with images
     displayInjuries.innerHTML = "";
-    if (match.visibility?.injuries) {
+    if (match.injuries && match.injuries.length > 0 && match.visibility?.injuries) {
         match.injuries.forEach(injury => {
             const div = document.createElement("div");
             div.style.marginBottom = "10px";
             div.innerHTML = `<strong>${injury}</strong><br>`;
             const img = document.createElement("img");
-            img.src = "images/" + injury.toLowerCase() + ".png"; // PNG supported
+            img.src = `images/${injury.toLowerCase()}.png`;
             img.style.width = "150px";
-            img.onerror = function(){ this.style.display = "none"; }; // hide broken images
+            img.onerror = function(){ this.style.display = "none"; };
             div.appendChild(img);
             displayInjuries.appendChild(div);
         });
@@ -112,7 +147,7 @@ function displaySelectedCasualty(selectedCasualty, selectedScenario) {
     displayLastMeal.textContent = match.visibility?.lastMeal ? match.lastMeal : "";
 }
 
-// 6️⃣ Clear display
+// Clear display
 function clearDisplay() {
     displayScenario.textContent = '';
     displayCasualty.textContent = '';
@@ -123,3 +158,6 @@ function clearDisplay() {
     displayLastMeal.textContent = '';
 }
 </script>
+
+</body>
+</html>
