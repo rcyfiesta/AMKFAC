@@ -1,16 +1,29 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Casualty Interface</title>
+    <meta charset="UTF-8">
+    <title>Casualty View</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <h1>Casualty View</h1>
 
-<h2>Casualty Interface</h2>
+    <label>Scenario Number</label>
+    <input type="text" id="scenarioNumberInput">
 
-<div id="casualtyDisplay"></div>
+    <label>Casualty Number / Name</label>
+    <input type="text" id="casualtyNameInput">
 
-<script type="module" src="script.js"></script>
+    <div id="casualtyInfo">
+        <p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
+        <p><strong>Casualty:</strong> <span id="displayCasualty"></span></p>
+        <p><strong>Injuries:</strong> <span id="displayInjuries"></span></p>
+        <p><strong>What Happened:</strong> <span id="displayWhatHappened"></span></p>
+        <p><strong>Medical History:</strong> <span id="displayMedicalHistory"></span></p>
+        <p><strong>Drug Allergies:</strong> <span id="displayAllergies"></span></p>
+        <p><strong>Last Meal:</strong> <span id="displayLastMeal"></span></p>
+    </div>
 
+    <script type="module" src="script.js"></script>
 </body>
 </html>

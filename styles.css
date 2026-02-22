@@ -1,29 +1,57 @@
 body {
-    font-family: Arial;
-    text-align: center;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    max-width: 700px;
+    margin: auto;
     background-color: #f4f4f4;
 }
 
-.menu a {
+h1 {
+    text-align: center;
+}
+
+form label {
     display: block;
-    margin: 15px;
-    padding: 10px;
-    background: #007BFF;
-    color: white;
-    text-decoration: none;
-    width: 250px;
-    margin-left: auto;
-    margin-right: auto;
-    border-radius: 5px;
+    margin-top: 10px;
+    font-weight: bold;
 }
 
 input, textarea, select {
-    width: 300px;
-    margin: 5px;
-    padding: 5px;
+    width: 100%;
+    padding: 6px;
+    margin-top: 3px;
+    box-sizing: border-box;
 }
 
 button {
-    padding: 8px 15px;
-    margin: 10px;
+    margin-top: 15px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #007BFF;
+    color: #fff;
+}
+
+nav ul {
+    list-style: none;
+    padding: 0;
+    text-align: center;
+}
+
+nav li {
+    display: inline-block;
+    margin: 0 10px;
+}
+
+nav a {
+    text-decoration: none;
+    color: #007BFF;
+    font-weight: bold;
+}
+
+nav a:hover {
+    text-decoration: underline;
 }

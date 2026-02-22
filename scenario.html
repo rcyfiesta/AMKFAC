@@ -2,53 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>First Aid Training - Scenario Input</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            max-width: 600px;
-            margin: auto;
-        }
-        h1 { text-align: center; }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-        input, textarea { width: 100%; padding: 5px; margin-top: 3px; }
-        button { margin-top: 15px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
-        button:hover { background-color: #007BFF; color: #fff; }
-    </style>
+    <title>Scenario Input</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
     <h1>Scenario Input</h1>
 
     <form id="scenarioForm">
-        <label for="scenarioNumber">Scenario Number</label>
+        <label>Scenario Number</label>
         <input type="text" id="scenarioNumber" required>
 
-        <label for="casualtyName">Casualty Name</label>
+        <label>Casualty Name</label>
         <input type="text" id="casualtyName" required>
 
-        <label for="injuries">Injuries (comma separated)</label>
+        <label>Injuries (comma separated)</label>
         <input type="text" id="injuries">
 
-        <label for="whatHappened">What Happened</label>
-        <textarea id="whatHappened" rows="2"></textarea>
+        <label>What Happened</label>
+        <textarea id="whatHappened"></textarea>
 
-        <label for="medicalHistory">Medical History</label>
-        <textarea id="medicalHistory" rows="2"></textarea>
+        <label>Medical History</label>
+        <textarea id="medicalHistory"></textarea>
 
-        <label for="allergies">Drug Allergies</label>
+        <label>Drug Allergies</label>
         <input type="text" id="allergies">
 
-        <label for="lastMeal">Last Meal</label>
+        <label>Last Meal</label>
         <input type="text" id="lastMeal">
 
         <button type="button" onclick="saveScenario()">Save Scenario</button>
     </form>
 
-    <!-- Firebase Script -->
     <script type="module" src="script.js"></script>
-
 </body>
 </html>

@@ -1,16 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Trainer Interface</title>
+    <meta charset="UTF-8">
+    <title>Trainer View</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <h1>Trainer View</h1>
 
-<h2>Trainer Interface</h2>
+    <label>Scenario Number</label>
+    <input type="text" id="scenarioNumberInputTrainer">
 
-<div id="casualtyDisplay"></div>
+    <label>Casualty Name</label>
+    <input type="text" id="casualtyNameInputTrainer">
 
-<script type="module" src="script.js"></script>
+    <div id="trainerInfo">
+        <p><strong>Scenario:</strong> <span id="displayScenarioTrainer"></span></p>
+        <p><strong>Casualty:</strong> <span id="displayCasualtyTrainer"></span></p>
+        <p><strong>Injuries:</strong> <span id="displayInjuriesTrainer"></span></p>
+        <p><strong>What Happened:</strong> <span id="displayWhatHappenedTrainer"></span></p>
+        <p><strong>Medical History:</strong> <span id="displayMedicalHistoryTrainer"></span></p>
+        <p><strong>Drug Allergies:</strong> <span id="displayAllergiesTrainer"></span></p>
+        <p><strong>Last Meal:</strong> <span id="displayLastMealTrainer"></span></p>
 
+        <label>Trainer Checklist</label>
+        <div id="trainerChecklist"></div>
+
+        <label>Feedback</label>
+        <textarea id="trainerFeedback" rows="3"></textarea>
+    </div>
+
+    <script type="module" src="script.js"></script>
 </body>
 </html>
