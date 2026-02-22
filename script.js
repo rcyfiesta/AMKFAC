@@ -15,6 +15,11 @@ const db = getFirestore(app);
 
 document.addEventListener("DOMContentLoaded", () => {
 
+    const saveBtn = document.getElementById("saveScenario");
+
+    // ✅ If button doesn't exist (other pages), stop here safely
+    if (!saveBtn) return;
+
     const scenarioNumber = document.getElementById("scenarioNumber");
     const casualtyName = document.getElementById("casualtyName");
     const injuries = document.getElementById("injuries");
@@ -22,18 +27,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const medicalHistory = document.getElementById("medicalHistory");
     const allergies = document.getElementById("allergies");
     const lastMeal = document.getElementById("lastMeal");
-    const saveBtn = document.getElementById("saveScenario");
-
-    if (!saveBtn) return;
 
     saveBtn.addEventListener("click", async () => {
 
-        if (!scenarioNumber.value || !casualtyName.value) {
+        if (!scenarioNumber.value.trim() || !casualtyName.value.trim()) {
             alert("Scenario number and casualty name are required!");
             return;
         }
 
         try {
+
             await addDoc(collection(db, "scenarios"), {
                 scenarioNumber: scenarioNumber.value.trim(),
                 casualtyName: casualtyName.value.trim(),
@@ -45,7 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 allergies: allergies.value || "",
                 lastMeal: lastMeal.value || "",
 
-                // 🔥 visibility control
                 visibility: {
                     injuries: false,
                     whatHappened: false,
@@ -61,8 +63,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             document.getElementById("scenarioForm").reset();
 
-        } catch (err) {
-            console.error("Error saving:", err);
+        } catch (error) {
+            console.error("Save error:", error);
             alert("❌ Failed to save scenario. Check console.");
         }
     });
