@@ -15,15 +15,22 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 window.saveScenario = async function() {
+    const scenarioNumber = document.getElementById("scenarioNumber").value;
+    const casualtyName = document.getElementById("casualtyName").value;
+    const injuries = document.getElementById("injuries").value;
+    const whatHappened = document.getElementById("whatHappened").value;
+    const medicalHistory = document.getElementById("medicalHistory").value;
+    const allergies = document.getElementById("allergies").value;
+    const lastMeal = document.getElementById("lastMeal").value;
 
     await addDoc(collection(db, "scenarios"), {
-        scenarioNumber: document.getElementById("scenarioNumber").value,
-        casualtyName: document.getElementById("casualtyName").value,
-        injuries: document.getElementById("injuries").value,
-        whatHappened: document.getElementById("whatHappened").value,
-        medicalHistory: document.getElementById("medicalHistory").value,
-        allergies: document.getElementById("allergies").value,
-        lastMeal: document.getElementById("lastMeal").value
+        scenarioNumber,
+        casualtyName,
+        injuries,
+        whatHappened,
+        medicalHistory,
+        allergies,
+        lastMeal
     });
 
     alert("Scenario Saved!");
