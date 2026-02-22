@@ -48,43 +48,26 @@ const infoSection = document.getElementById("infoSection");
 
 let allScenarios = [];
 let currentDocId = null;
+let currentUnsubscribe = null;
 
-// Map injuries to images (png or jpg)
-const injuryImages = {
-  abrasion: "images/abrasion.png",
-  allergic: "images/allergic.png",
-  amputation: "images/amputation.png",
-  avulsion: "images/avulsion.png",
-  bee: "images/bee.png",
-  closed: "images/closed.png",
-  contusion: "images/contusion.png",
-  exhaustion: "images/exhaustion.png",
-  first: "images/first.png",
-  incision: "images/incision.png",
-  laceration: "images/laceration.png",
-  not: "images/not.png",
-  open: "images/open.png",
-  penetrating: "images/penetrating.png",
-  pregnant: "images/pregnant.png",
-  puncture: "images/puncture.png",
-  second: "images/second.png",
-  shock: "images/shock.png",
-  snake: "images/snake.png",
-  sprain: "images/sprain.png",
-  strain: "images/strain.png",
-  third: "images/third.png",
-};
+// Map injuries to images
+const injuryImages = { abrasion: "images/abrasion.png", allergic: "images/allergic.png", amputation: "images/amputation.png",
+avulsion: "images/avulsion.png", bee: "images/bee.png", closed: "images/closed.png", contusion: "images/contusion.png",
+exhaustion: "images/exhaustion.png", first: "images/first.png", incision: "images/incision.png", laceration: "images/laceration.png",
+not: "images/not.png", open: "images/open.png", penetrating: "images/penetrating.png", pregnant: "images/pregnant.png",
+puncture: "images/puncture.png", second: "images/second.png", shock: "images/shock.png", snake: "images/snake.png",
+sprain: "images/sprain.png", strain: "images/strain.png", third: "images/third.png" };
 
-// Rubric for each injury
-const injuryRubric = {
+// Rubric for injuries
+const injuryRubric = { 
   abrasion: ["Pour saline water on abrasion", "Clean using gauze in ONE circular motion from INNER to OUTER of wound", "Dry the wound with a gauze", "Cover with gauze", "Tape all 4 sides using micropore tape"],
   allergic: ["Call SCDF 995", "Are you having an allergic reaction?", "I am a first aider, I can help you", "Do you have any medication with you?", "Remove the blue safety cap", "Position orange part at 90 to the outer mid thigh", "Swing and jab it into thigh and hold for 10 seconds", "Remove the EpiPen and massage area for 10 seconds", "Monitor breathing and consciousness every 2 minutes"],
   amputation: ["Call SCDF 995", "Use a pressure pad to apply direct pressure", "Apply a tourniquet", "Record time you applied the tourniquet and inform paramedics", "Treat for shock", "Wrap part in clean dry gauze", "Place in small bag", "Place the small bag in another bag/container, filled with ice", "Label the bag with name of casualty and time found"],
   avulsion: ["Use gauze to cover injury", "Bandage to secure gauze and apply pressure to reduce bleeding", "Take any detached skin to hospital"],
-  bee: ["Flick the stinger out using a card OR pull out using tweezers", "Ice the area for 10 - 15 minutes (if in mouth ask casualty suck on ice or sip cold water)", "Monitor for allergic reaction, breathing and consciousness", "Tell casualty see doctor if pain and swelling persists"],
+  bee: ["Flick the stinger out using a card OR pull out using tweezers", "Ice the area for 10 - 15 minutes (if in mouth ask casualty suck on ice or sip cold water)", "Monitor for allergic reaction, breathing and consciousness", "Tell casualty see doctor if pain and swelling persists"]
 };
 
-// Load scenarios from Firestore
+// Load scenarios
 const q = query(collection(db, "scenarios"));
 onSnapshot(q, snapshot => {
     allScenarios = [];
@@ -93,33 +76,60 @@ onSnapshot(q, snapshot => {
     const scenarios = [...new Set(allScenarios.map(s => s.scenarioNumber))];
     scenarioSelect.innerHTML = "<option value=''>Select Scenario</option>";
     scenarios.forEach(s => scenarioSelect.appendChild(new Option(s, s)));
+
+    // Update casualty dropdown if scenario already selected
+    if (scenarioSelect.value) updateCasualtyDropdown(scenarioSelect.value);
+
+    // Refresh info if casualty already selected
+    if (casualtySelect.value) selectCasualty(casualtySelect.value, scenarioSelect.value);
+});
+
+// Scenario dropdown listener
+scenarioSelect.addEventListener("change", () => {
+    updateCasualtyDropdown(scenarioSelect.value);
+});
+
+// Casualty dropdown listener
+casualtySelect.addEventListener("change", () => {
+    selectCasualty(casualtySelect.value, scenarioSelect.value);
 });
 
 // Update casualty dropdown
-scenarioSelect.addEventListener("change", () => {
-    const selected = scenarioSelect.value;
+function updateCasualtyDropdown(selectedScenario) {
     const casualties = allScenarios
-        .filter(s => s.scenarioNumber === selected)
+        .filter(s => s.scenarioNumber === selectedScenario)
         .map(s => s.casualtyName);
     casualtySelect.innerHTML = "<option value=''>Select Casualty</option>";
     [...new Set(casualties)].forEach(c => casualtySelect.appendChild(new Option(c, c)));
-});
 
-// Show casualty info
-casualtySelect.addEventListener("change", () => {
-    const scenario = scenarioSelect.value;
-    const casualty = casualtySelect.value;
+    // Clear display
+    displayScenario.textContent = "";
+    displayCasualty.textContent = "";
+    infoSection.innerHTML = "";
+}
+
+// Select casualty and subscribe to live updates
+function selectCasualty(casualty, scenario) {
     const match = allScenarios.find(s => s.scenarioNumber === scenario && s.casualtyName === casualty);
     if (!match) return;
 
     currentDocId = match.id;
-    displayScenario.textContent = match.scenarioNumber;
-    displayCasualty.textContent = match.casualtyName;
 
-    renderInfo(match);
-});
+    // Unsubscribe previous listener if exists
+    if (currentUnsubscribe) currentUnsubscribe();
 
-// Render info including injury images, rubrics, and feedback
+    const docRef = doc(db, "scenarios", currentDocId);
+    currentUnsubscribe = onSnapshot(docRef, docSnap => {
+        if (!docSnap.exists()) return;
+        const data = { id: docSnap.id, ...docSnap.data() };
+
+        displayScenario.textContent = data.scenarioNumber;
+        displayCasualty.textContent = data.casualtyName;
+        renderInfo(data);
+    });
+}
+
+// Render info including injuries, rubrics, feedback, and push buttons
 function renderInfo(data) {
     infoSection.innerHTML = "";
 
@@ -178,6 +188,7 @@ function renderInfo(data) {
     addPushSection("Last Meal", data.lastMeal, "lastMeal");
 }
 
+// Helper to create push sections
 function addPushSection(title, value, field) {
     const div = document.createElement("div");
     div.style.marginTop = "15px";
@@ -191,7 +202,7 @@ function addPushSection(title, value, field) {
     div.appendChild(btn);
     infoSection.appendChild(div);
 }
-
 </script>
+
 </body>
 </html>
