@@ -1,20 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Trainer Feedback</title>
-<link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <title>Trainer Feedback</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
 <h1>Trainer Feedback</h1>
 
-<div id="feedbackList"></div>
+<div id="feedbackContainer"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
   authDomain: "amkfac-c85a0.firebaseapp.com",
@@ -27,29 +28,40 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const feedbackList = document.getElementById("feedbackList");
+const feedbackContainer = document.getElementById("feedbackContainer");
 
 const q = query(collection(db, "scenarios"));
+
 onSnapshot(q, snapshot => {
-    feedbackList.innerHTML = ""; // clear old list
+    feedbackContainer.innerHTML = ""; // clear previous content
     snapshot.forEach(docSnap => {
         const data = docSnap.data();
-        if (data.feedback) {
-            const scenario = data.scenarioNumber;
-            const casualty = data.casualtyName;
 
-            for (const [injury, feedbackText] of Object.entries(data.feedback)) {
-                const div = document.createElement("div");
-                div.style.border = "1px solid #ccc";
-                div.style.padding = "10px";
-                div.style.marginBottom = "10px";
-                div.innerHTML = `<strong>Scenario:</strong> ${scenario}<br>
-                                 <strong>Casualty:</strong> ${casualty}<br>
-                                 <strong>Injury:</strong> ${injury}<br>
-                                 <strong>Feedback:</strong> ${feedbackText}`;
-                feedbackList.appendChild(div);
-            }
+        if (!data.feedback) return; // skip if no feedback
+
+        const scenarioDiv = document.createElement("div");
+        scenarioDiv.style.border = "2px solid #444";
+        scenarioDiv.style.padding = "10px";
+        scenarioDiv.style.marginBottom = "15px";
+
+        const scenarioHeader = document.createElement("h2");
+        scenarioHeader.textContent = `Scenario: ${data.scenarioNumber}`;
+        scenarioDiv.appendChild(scenarioHeader);
+
+        const casualtyHeader = document.createElement("h3");
+        casualtyHeader.textContent = `Casualty: ${data.casualtyName}`;
+        scenarioDiv.appendChild(casualtyHeader);
+
+        const feedbacks = data.feedback;
+        for (const injury in feedbacks) {
+            const feedbackText = feedbacks[injury];
+            const div = document.createElement("div");
+            div.style.margin = "8px 0";
+            div.innerHTML = `<strong>Injury:</strong> ${injury}<br><strong>Feedback:</strong> ${feedbackText}`;
+            scenarioDiv.appendChild(div);
         }
+
+        feedbackContainer.appendChild(scenarioDiv);
     });
 });
 </script>
