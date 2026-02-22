@@ -11,7 +11,7 @@
     <label>Scenario Number</label>
     <input type="text" id="scenarioNumberInput">
 
-    <label>Casualty Number / Name</label>
+    <label>Casualty Name</label>
     <input type="text" id="casualtyNameInput">
 
     <div id="casualtyInfo">
@@ -24,6 +24,66 @@
         <p><strong>Last Meal:</strong> <span id="displayLastMeal"></span></p>
     </div>
 
-    <script type="module" src="script.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "YOUR_API_KEY",
+          authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+          projectId: "YOUR_PROJECT_ID",
+          storageBucket: "YOUR_PROJECT_ID.appspot.com",
+          messagingSenderId: "YOUR_SENDER_ID",
+          appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const scenarioInput = document.getElementById("scenarioNumberInput");
+        const casualtyInput = document.getElementById("casualtyNameInput");
+
+        const displayScenario = document.getElementById("displayScenario");
+        const displayCasualty = document.getElementById("displayCasualty");
+        const displayInjuries = document.getElementById("displayInjuries");
+        const displayWhatHappened = document.getElementById("displayWhatHappened");
+        const displayMedicalHistory = document.getElementById("displayMedicalHistory");
+        const displayAllergies = document.getElementById("displayAllergies");
+        const displayLastMeal = document.getElementById("displayLastMeal");
+
+        function listenScenarios(scenarioNumber, casualtyName) {
+            const q = query(collection(db, "scenarios"), orderBy("timestamp", "desc"));
+            onSnapshot(q, snapshot => {
+                let found = false;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if(data.scenarioNumber === scenarioNumber && data.casualtyName === casualtyName) {
+                        displayScenario.textContent = data.scenarioNumber;
+                        displayCasualty.textContent = data.casualtyName;
+                        displayInjuries.textContent = data.injuries;
+                        displayWhatHappened.textContent = data.whatHappened;
+                        displayMedicalHistory.textContent = data.medicalHistory;
+                        displayAllergies.textContent = data.allergies;
+                        displayLastMeal.textContent = data.lastMeal;
+                        found = true;
+                    }
+                });
+                if(!found) {
+                    displayScenario.textContent = '';
+                    displayCasualty.textContent = '';
+                    displayInjuries.textContent = '';
+                    displayWhatHappened.textContent = '';
+                    displayMedicalHistory.textContent = '';
+                    displayAllergies.textContent = '';
+                    displayLastMeal.textContent = '';
+                }
+            });
+        }
+
+        // Update listener when inputs change
+        scenarioInput.addEventListener('input', () => listenScenarios(scenarioInput.value.trim(), casualtyInput.value.trim()));
+        casualtyInput.addEventListener('input', () => listenScenarios(scenarioInput.value.trim(), casualtyInput.value.trim()));
+
+    </script>
 </body>
 </html>

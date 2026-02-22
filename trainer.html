@@ -23,13 +23,68 @@
         <p><strong>Drug Allergies:</strong> <span id="displayAllergiesTrainer"></span></p>
         <p><strong>Last Meal:</strong> <span id="displayLastMealTrainer"></span></p>
 
-        <label>Trainer Checklist</label>
-        <div id="trainerChecklist"></div>
-
-        <label>Feedback</label>
-        <textarea id="trainerFeedback" rows="3"></textarea>
+        <label>Checklist / Feedback</label>
+        <textarea id="trainerFeedback" rows="3" placeholder="Add feedback here..."></textarea>
+        <button id="pushToCasualty">Push info to casualty</button>
     </div>
 
-    <script type="module" src="script.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "YOUR_API_KEY",
+          authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+          projectId: "YOUR_PROJECT_ID",
+          storageBucket: "YOUR_PROJECT_ID.appspot.com",
+          messagingSenderId: "YOUR_SENDER_ID",
+          appId: "YOUR_APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const scenarioInput = document.getElementById("scenarioNumberInputTrainer");
+        const casualtyInput = document.getElementById("casualtyNameInputTrainer");
+
+        const displayScenario = document.getElementById("displayScenarioTrainer");
+        const displayCasualty = document.getElementById("displayCasualtyTrainer");
+        const displayInjuries = document.getElementById("displayInjuriesTrainer");
+        const displayWhatHappened = document.getElementById("displayWhatHappenedTrainer");
+        const displayMedicalHistory = document.getElementById("displayMedicalHistoryTrainer");
+        const displayAllergies = document.getElementById("displayAllergiesTrainer");
+        const displayLastMeal = document.getElementById("displayLastMealTrainer");
+
+        const pushButton = document.getElementById("pushToCasualty");
+        const feedbackBox = document.getElementById("trainerFeedback");
+
+        function listenScenarios(scenarioNumber, casualtyName) {
+            const q = query(collection(db, "scenarios"), orderBy("timestamp", "desc"));
+            onSnapshot(q, snapshot => {
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    if(data.scenarioNumber === scenarioNumber && data.casualtyName === casualtyName) {
+                        displayScenario.textContent = data.scenarioNumber;
+                        displayCasualty.textContent = data.casualtyName;
+                        displayInjuries.textContent = data.injuries;
+                        displayWhatHappened.textContent = data.whatHappened;
+                        displayMedicalHistory.textContent = data.medicalHistory;
+                        displayAllergies.textContent = data.allergies;
+                        displayLastMeal.textContent = data.lastMeal;
+                    }
+                });
+            });
+        }
+
+        scenarioInput.addEventListener('input', () => listenScenarios(scenarioInput.value.trim(), casualtyInput.value.trim()));
+        casualtyInput.addEventListener('input', () => listenScenarios(scenarioInput.value.trim(), casualtyInput.value.trim()));
+
+        // Push info button (for simplicity, alert showing the feedback)
+        pushButton.addEventListener('click', () => {
+            alert(`✅ Info pushed to casualty page!\nFeedback: ${feedbackBox.value}`);
+            feedbackBox.value = '';
+        });
+
+    </script>
 </body>
 </html>
