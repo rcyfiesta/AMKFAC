@@ -2,13 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Feedback Interface</title>
+    <title>Trainer Feedback</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
 <h1>Trainer Feedback</h1>
 
-<div id="feedbackSection"></div>
+<div id="feedbackContainer"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
@@ -27,64 +28,71 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-const feedbackSection = document.getElementById("feedbackSection");
+const feedbackContainer = document.getElementById("feedbackContainer");
 
 const q = query(collection(db, "scenarios"));
-onSnapshot(q, snapshot => {
-    feedbackSection.innerHTML = ""; // clear previous
 
+onSnapshot(q, snapshot => {
+    feedbackContainer.innerHTML = ""; // clear previous content
     snapshot.forEach(docSnap => {
         const data = docSnap.data();
 
-        const container = document.createElement("div");
-        container.style.border = "1px solid #ccc";
-        container.style.padding = "10px";
-        container.style.marginBottom = "15px";
+        // Skip if no feedback or no rubric status
+        if (!data.feedback && !data.rubric) return;
 
-        const scenarioTitle = document.createElement("h2");
-        scenarioTitle.textContent = `Scenario: ${data.scenarioNumber} | Casualty: ${data.casualtyName}`;
-        container.appendChild(scenarioTitle);
+        const scenarioDiv = document.createElement("div");
+        scenarioDiv.style.border = "2px solid #444";
+        scenarioDiv.style.padding = "10px";
+        scenarioDiv.style.marginBottom = "15px";
 
-        if (data.injuries) {
-            data.injuries.forEach(injury => {
-                const injuryDiv = document.createElement("div");
-                injuryDiv.style.borderTop = "1px dashed #888";
-                injuryDiv.style.paddingTop = "5px";
-                injuryDiv.style.marginTop = "5px";
+        const scenarioHeader = document.createElement("h2");
+        scenarioHeader.textContent = `Scenario: ${data.scenarioNumber}`;
+        scenarioDiv.appendChild(scenarioHeader);
 
-                const injuryTitle = document.createElement("h3");
-                injuryTitle.textContent = `Injury: ${injury}`;
-                injuryDiv.appendChild(injuryTitle);
+        const casualtyHeader = document.createElement("h3");
+        casualtyHeader.textContent = `Casualty: ${data.casualtyName}`;
+        scenarioDiv.appendChild(casualtyHeader);
 
-                // Unticked rubric items
-                const rubricItems = data.rubric?.[injury] || [];
-                const unticked = rubricItems.filter(item => !item.checked);
-                if (unticked.length > 0) {
-                    const ul = document.createElement("ul");
-                    unticked.forEach(item => {
+        const injuries = data.injuries || [];
+        injuries.forEach(injury => {
+            const injuryDiv = document.createElement("div");
+            injuryDiv.style.margin = "10px 0";
+            injuryDiv.innerHTML = `<strong>Injury:</strong> ${injury}`;
+
+            // Show feedback if exists
+            if (data.feedback && data.feedback[injury]) {
+                const fb = document.createElement("p");
+                fb.innerHTML = `<strong>Feedback:</strong> ${data.feedback[injury]}`;
+                injuryDiv.appendChild(fb);
+            }
+
+            // Show unticked rubric criteria
+            if (data.rubric && data.rubric[injury]) {
+                const rubricList = document.createElement("ul");
+                rubricList.style.marginLeft = "20px";
+                data.rubric[injury].forEach(item => {
+                    // Show only unticked
+                    if (!item.checked) {
                         const li = document.createElement("li");
                         li.textContent = item.criteria;
-                        ul.appendChild(li);
-                    });
-                    injuryDiv.appendChild(document.createTextNode("Unticked Treatments:"));
-                    injuryDiv.appendChild(ul);
-                } else {
-                    injuryDiv.appendChild(document.createTextNode("All treatments ticked."));
+                        rubricList.appendChild(li);
+                    }
+                });
+                if (rubricList.childElementCount > 0) {
+                    const rubricHeader = document.createElement("p");
+                    rubricHeader.innerHTML = "<strong>Unticked Criteria:</strong>";
+                    injuryDiv.appendChild(rubricHeader);
+                    injuryDiv.appendChild(rubricList);
                 }
+            }
 
-                // Feedback
-                const feedbackText = data.feedback?.[injury] || "";
-                const fbPara = document.createElement("p");
-                fbPara.innerHTML = `<strong>Trainer Feedback:</strong> ${feedbackText}`;
-                injuryDiv.appendChild(fbPara);
+            scenarioDiv.appendChild(injuryDiv);
+        });
 
-                container.appendChild(injuryDiv);
-            });
-        }
-
-        feedbackSection.appendChild(container);
+        feedbackContainer.appendChild(scenarioDiv);
     });
 });
 </script>
+
 </body>
 </html>
