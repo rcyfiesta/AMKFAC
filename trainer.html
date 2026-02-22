@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Trainer Interface</title>
-<link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <title>Trainer Interface</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -49,7 +49,7 @@ const infoSection = document.getElementById("infoSection");
 let allScenarios = [];
 let currentDocId = null;
 
-// Map injuries to images (png or jpg)
+// Map injuries to images
 const injuryImages = {
   abrasion: "images/abrasion.png",
   allergic: "images/allergic.png",
@@ -103,6 +103,7 @@ scenarioSelect.addEventListener("change", () => {
         .map(s => s.casualtyName);
     casualtySelect.innerHTML = "<option value=''>Select Casualty</option>";
     [...new Set(casualties)].forEach(c => casualtySelect.appendChild(new Option(c, c)));
+    clearDisplay();
 });
 
 // Show casualty info
@@ -119,13 +120,13 @@ casualtySelect.addEventListener("change", () => {
     renderInfo(match);
 });
 
-// Render info including injury images, rubrics, feedback
+// Render info including injuries, rubrics, and feedback
 function renderInfo(data) {
     infoSection.innerHTML = "";
 
-    // Injuries
     const injuryDiv = document.createElement("div");
     injuryDiv.innerHTML = "<h3>Injuries</h3>";
+
     data.injuries.forEach(injury => {
         const lower = injury.toLowerCase();
         const container = document.createElement("div");
@@ -154,31 +155,31 @@ function renderInfo(data) {
 
         // Feedback box
         const feedback = document.createElement("textarea");
-        feedback.placeholder = "Trainer feedback for this injury";
+        feedback.placeholder = "Enter trainer feedback here...";
         feedback.style.display = "block";
         feedback.style.marginTop = "5px";
         container.appendChild(feedback);
 
         // Submit feedback button
-        const submitFeedbackBtn = document.createElement("button");
-        submitFeedbackBtn.textContent = "Submit Feedback";
-        submitFeedbackBtn.style.marginLeft = "5px";
-
-        submitFeedbackBtn.onclick = async () => {
+        const submitBtn = document.createElement("button");
+        submitBtn.textContent = "Submit Feedback";
+        submitBtn.style.marginTop = "5px";
+        submitBtn.onclick = async () => {
             if (!feedback.value) {
-                alert("Please write feedback before submitting.");
+                alert("Please enter feedback before submitting.");
                 return;
             }
-            const feedbackField = `feedback.${injury.toLowerCase()}`;
-            await updateDoc(doc(db, "scenarios", currentDocId), { [feedbackField]: feedback.value });
-            alert("Feedback submitted!");
+            const field = `feedback.${lower}`;
+            await updateDoc(doc(db, "scenarios", currentDocId), { [field]: feedback.value });
+            alert(`Feedback for ${injury} submitted!`);
             feedback.value = "";
         };
-        container.appendChild(submitFeedbackBtn);
+        container.appendChild(submitBtn);
 
         injuryDiv.appendChild(container);
     });
 
+    // Button to reveal injuries to casualty
     const pushBtn = document.createElement("button");
     pushBtn.textContent = "Show Injuries To Casualty";
     pushBtn.onclick = async () => {
@@ -188,13 +189,14 @@ function renderInfo(data) {
     injuryDiv.appendChild(pushBtn);
     infoSection.appendChild(injuryDiv);
 
-    // Other sections
+    // Other info sections
     addPushSection("What Happened", data.whatHappened, "whatHappened");
     addPushSection("Medical History", data.medicalHistory, "medicalHistory");
     addPushSection("Drug Allergies", data.allergies, "allergies");
     addPushSection("Last Meal", data.lastMeal, "lastMeal");
 }
 
+// Helper to create reveal buttons for other sections
 function addPushSection(title, value, field) {
     const div = document.createElement("div");
     div.style.marginTop = "15px";
@@ -203,10 +205,17 @@ function addPushSection(title, value, field) {
     btn.textContent = `Show ${title} To Casualty`;
     btn.onclick = async () => {
         await updateDoc(doc(db, "scenarios", currentDocId), { [`visibility.${field}`]: true });
-        alert(title + " revealed.");
+        alert(`${title} revealed.`);
     };
     div.appendChild(btn);
     infoSection.appendChild(div);
+}
+
+// Clear display function
+function clearDisplay() {
+    displayScenario.textContent = '';
+    displayCasualty.textContent = '';
+    infoSection.innerHTML = '';
 }
 </script>
 
