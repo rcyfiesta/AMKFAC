@@ -6,29 +6,31 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Casualty View</h1>
 
-    <label>Scenario Number</label>
-    <select id="scenarioNumberSelect">
-        <option value="">-- Loading scenarios --</option>
-    </select>
+<h1>Casualty View</h1>
 
-    <label>Casualty Name</label>
-    <select id="casualtyNameSelect">
-        <option value="">-- Select Scenario First --</option>
-    </select>
+<label>Scenario Number</label>
+<select id="scenarioNumberSelect">
+    <option value="">-- Loading scenarios --</option>
+</select>
 
-    <div id="casualtyInfo">
-        <p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
-        <p><strong>Casualty:</strong> <span id="displayCasualty"></span></p>
-        <p><strong>Injuries:</strong> <span id="displayInjuries"></span></p>
-        <p><strong>What Happened:</strong> <span id="displayWhatHappened"></span></p>
-        <p><strong>Medical History:</strong> <span id="displayMedicalHistory"></span></p>
-        <p><strong>Drug Allergies:</strong> <span id="displayAllergies"></span></p>
-        <p><strong>Last Meal:</strong> <span id="displayLastMeal"></span></p>
-    </div>
+<label>Casualty Name</label>
+<select id="casualtyNameSelect">
+    <option value="">-- Select Scenario First --</option>
+</select>
+
+<div id="casualtyInfo">
+    <p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
+    <p><strong>Casualty:</strong> <span id="displayCasualty"></span></p>
+    <p><strong>Injuries:</strong> <span id="displayInjuries"></span></p>
+    <p><strong>What Happened:</strong> <span id="displayWhatHappened"></span></p>
+    <p><strong>Medical History:</strong> <span id="displayMedicalHistory"></span></p>
+    <p><strong>Drug Allergies:</strong> <span id="displayAllergies"></span></p>
+    <p><strong>Last Meal:</strong> <span id="displayLastMeal"></span></p>
+</div>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
@@ -57,10 +59,10 @@ const displayLastMeal = document.getElementById("displayLastMeal");
 
 let allScenarios = [];
 
-// Listen to scenarios
 const q = query(collection(db, "scenarios"));
 
 onSnapshot(q, snapshot => {
+
     allScenarios = [];
 
     snapshot.forEach(doc => {
@@ -77,6 +79,7 @@ onSnapshot(q, snapshot => {
         option.textContent = num;
         scenarioSelect.appendChild(option);
     });
+
 });
 
 scenarioSelect.addEventListener('change', () => {
@@ -97,6 +100,7 @@ scenarioSelect.addEventListener('change', () => {
         option.textContent = name;
         casualtySelect.appendChild(option);
     });
+
 });
 
 casualtySelect.addEventListener('change', () => {
@@ -128,6 +132,7 @@ casualtySelect.addEventListener('change', () => {
 
     displayLastMeal.textContent =
         match.visibility?.lastMeal ? match.lastMeal : "";
+
 });
 
 </script>
