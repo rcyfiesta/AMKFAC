@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-// ✅ Your Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
   authDomain: "amkfac-c85a0.firebaseapp.com",
@@ -11,52 +10,61 @@ const firebaseConfig = {
   appId: "1:320355813529:web:a2e979ad989f95acbb5008"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// Get form elements
-const scenarioNumber = document.getElementById("scenarioNumber");
-const casualtyName = document.getElementById("casualtyName");
-const injuries = document.getElementById("injuries");
-const whatHappened = document.getElementById("whatHappened");
-const medicalHistory = document.getElementById("medicalHistory");
-const allergies = document.getElementById("allergies");
-const lastMeal = document.getElementById("lastMeal");
-const saveBtn = document.getElementById("saveScenario");
+document.addEventListener("DOMContentLoaded", () => {
 
-// Save scenario to Firestore
-saveBtn.addEventListener("click", async () => {
-    if (!scenarioNumber.value || !casualtyName.value) {
-        alert("Scenario number and casualty name are required!");
-        return;
-    }
+    const scenarioNumber = document.getElementById("scenarioNumber");
+    const casualtyName = document.getElementById("casualtyName");
+    const injuries = document.getElementById("injuries");
+    const whatHappened = document.getElementById("whatHappened");
+    const medicalHistory = document.getElementById("medicalHistory");
+    const allergies = document.getElementById("allergies");
+    const lastMeal = document.getElementById("lastMeal");
+    const saveBtn = document.getElementById("saveScenario");
 
-    try {
-        await addDoc(collection(db, "scenarios"), {
-            scenarioNumber: scenarioNumber.value,
-            casualtyName: casualtyName.value,
-            injuries: injuries.value,
-            whatHappened: whatHappened.value,
-            medicalHistory: medicalHistory.value,
-            allergies: allergies.value,
-            lastMeal: lastMeal.value,
-            timestamp: serverTimestamp()
-        });
+    if (!saveBtn) return;
 
-        alert("✅ Scenario saved successfully!");
-        
-        // Clear form
-        scenarioNumber.value = '';
-        casualtyName.value = '';
-        injuries.value = '';
-        whatHappened.value = '';
-        medicalHistory.value = '';
-        allergies.value = '';
-        lastMeal.value = '';
+    saveBtn.addEventListener("click", async () => {
 
-    } catch (err) {
-        console.error("Error saving scenario:", err);
-        alert("❌ Failed to save scenario. Check console for details.");
-    }
+        if (!scenarioNumber.value || !casualtyName.value) {
+            alert("Scenario number and casualty name are required!");
+            return;
+        }
+
+        try {
+            await addDoc(collection(db, "scenarios"), {
+                scenarioNumber: scenarioNumber.value.trim(),
+                casualtyName: casualtyName.value.trim(),
+                injuries: injuries.value
+                    ? injuries.value.split(",").map(i => i.trim())
+                    : [],
+                whatHappened: whatHappened.value || "",
+                medicalHistory: medicalHistory.value || "",
+                allergies: allergies.value || "",
+                lastMeal: lastMeal.value || "",
+
+                // 🔥 visibility control
+                visibility: {
+                    injuries: false,
+                    whatHappened: false,
+                    medicalHistory: false,
+                    allergies: false,
+                    lastMeal: false
+                },
+
+                timestamp: serverTimestamp()
+            });
+
+            alert("✅ Scenario saved successfully!");
+
+            document.getElementById("scenarioForm").reset();
+
+        } catch (err) {
+            console.error("Error saving:", err);
+            alert("❌ Failed to save scenario. Check console.");
+        }
+    });
+
 });
