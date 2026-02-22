@@ -1,3 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Casualty View</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<h1>Casualty View</h1>
+
+<!-- Reload Page Button Top Right -->
+<button id="reloadBtn" style="position: absolute; top: 10px; right: 10px;">Reload Page</button>
+
+<label>Scenario Number</label>
+<select id="scenarioNumberSelect">
+    <option value="">-- Loading scenarios --</option>
+</select>
+
+<label>Casualty Name</label>
+<select id="casualtyNameSelect">
+    <option value="">-- Select Scenario First --</option>
+</select>
+
+<div id="casualtyInfo">
+    <p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
+    <p><strong>Casualty:</strong> <span id="displayCasualty"></span></p>
+    <div id="displayInjuries"></div>
+    <p><strong>What Happened:</strong> <span id="displayWhatHappened"></span></p>
+    <p><strong>Medical History:</strong> <span id="displayMedicalHistory"></span></p>
+    <p><strong>Drug Allergies:</strong> <span id="displayAllergies"></span></p>
+    <p><strong>Last Meal:</strong> <span id="displayLastMeal"></span></p>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
@@ -26,9 +60,22 @@ const displayMedicalHistory = document.getElementById("displayMedicalHistory");
 const displayAllergies = document.getElementById("displayAllergies");
 const displayLastMeal = document.getElementById("displayLastMeal");
 
+const reloadBtn = document.getElementById("reloadBtn");
+
 let allScenarios = [];
 
-// 1️⃣ Real-time listener for all scenarios
+// Restore previous selections from localStorage
+const savedScenario = localStorage.getItem("selectedScenario");
+const savedCasualty = localStorage.getItem("selectedCasualty");
+
+// Reload button functionality
+reloadBtn.addEventListener("click", () => {
+    localStorage.setItem("selectedScenario", scenarioSelect.value);
+    localStorage.setItem("selectedCasualty", casualtySelect.value);
+    location.reload();
+});
+
+// Load all scenarios from Firestore
 const q = query(collection(db, "scenarios"));
 onSnapshot(q, snapshot => {
     allScenarios = [];
@@ -44,14 +91,19 @@ onSnapshot(q, snapshot => {
         scenarioSelect.appendChild(option);
     });
 
-    // Update casualty dropdown if scenario already selected
-    if (scenarioSelect.value) updateCasualtyDropdown(scenarioSelect.value);
+    // Restore scenario selection
+    if (savedScenario) {
+        scenarioSelect.value = savedScenario;
+        updateCasualtyDropdown(savedScenario);
+    }
 
-    // Update casualty display if casualty already selected
-    if (casualtySelect.value) displaySelectedCasualty(casualtySelect.value, scenarioSelect.value);
+    // Restore casualty selection
+    if (savedScenario && savedCasualty) {
+        displaySelectedCasualty(savedCasualty, savedScenario);
+    }
 });
 
-// 2️⃣ Update casualty dropdown
+// Update casualty dropdown based on selected scenario
 function updateCasualtyDropdown(selectedScenario) {
     const casualties = allScenarios
         .filter(s => s.scenarioNumber === selectedScenario)
@@ -65,20 +117,21 @@ function updateCasualtyDropdown(selectedScenario) {
         option.textContent = name;
         casualtySelect.appendChild(option);
     });
+
     clearDisplay();
 }
 
-// 3️⃣ Scenario dropdown listener
+// Scenario select listener
 scenarioSelect.addEventListener('change', () => {
     updateCasualtyDropdown(scenarioSelect.value);
 });
 
-// 4️⃣ Casualty dropdown listener
+// Casualty select listener
 casualtySelect.addEventListener('change', () => {
     displaySelectedCasualty(casualtySelect.value, scenarioSelect.value);
 });
 
-// 5️⃣ Function to display casualty info
+// Display casualty information
 function displaySelectedCasualty(selectedCasualty, selectedScenario) {
     const match = allScenarios.find(s =>
         s.scenarioNumber === selectedScenario &&
@@ -112,7 +165,7 @@ function displaySelectedCasualty(selectedCasualty, selectedScenario) {
     displayLastMeal.textContent = match.visibility?.lastMeal ? match.lastMeal : "";
 }
 
-// 6️⃣ Clear display
+// Clear displayed info
 function clearDisplay() {
     displayScenario.textContent = '';
     displayCasualty.textContent = '';
@@ -123,3 +176,6 @@ function clearDisplay() {
     displayLastMeal.textContent = '';
 }
 </script>
+
+</body>
+</html>
