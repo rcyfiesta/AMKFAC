@@ -49,7 +49,7 @@ const infoSection = document.getElementById("infoSection");
 let allScenarios = [];
 let currentDocId = null;
 
-// Map injuries to images
+// Injury images
 const injuryImages = {
   abrasion: "images/abrasion.png",
   allergic: "images/allergic.png",
@@ -103,7 +103,6 @@ scenarioSelect.addEventListener("change", () => {
         .map(s => s.casualtyName);
     casualtySelect.innerHTML = "<option value=''>Select Casualty</option>";
     [...new Set(casualties)].forEach(c => casualtySelect.appendChild(new Option(c, c)));
-    clearDisplay();
 });
 
 // Show casualty info
@@ -120,7 +119,7 @@ casualtySelect.addEventListener("change", () => {
     renderInfo(match);
 });
 
-// Render info including injuries, rubrics, and feedback
+// Render info including injury images, rubrics, and feedback
 function renderInfo(data) {
     infoSection.innerHTML = "";
 
@@ -145,58 +144,61 @@ function renderInfo(data) {
         }
 
         // Rubric checkboxes
+        const rubricStates = [];
         if (injuryRubric[lower]) {
             injuryRubric[lower].forEach(criteria => {
                 const label = document.createElement("label");
-                label.innerHTML = `<br><input type="checkbox"> ${criteria}`;
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.style.marginRight = "5px";
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(criteria));
                 container.appendChild(label);
+                container.appendChild(document.createElement("br"));
+
+                rubricStates.push({ criteria: criteria, checkbox: checkbox });
             });
         }
 
         // Feedback box
         const feedback = document.createElement("textarea");
-        feedback.placeholder = "Enter trainer feedback here...";
+        feedback.placeholder = "Trainer feedback for this injury";
         feedback.style.display = "block";
         feedback.style.marginTop = "5px";
         container.appendChild(feedback);
 
-        // Submit feedback button
-        const submitBtn = document.createElement("button");
-        submitBtn.textContent = "Submit Feedback";
-        submitBtn.style.marginTop = "5px";
-        submitBtn.onclick = async () => {
-            if (!feedback.value) {
-                alert("Please enter feedback before submitting.");
-                return;
-            }
-            const field = `feedback.${lower}`;
-            await updateDoc(doc(db, "scenarios", currentDocId), { [field]: feedback.value });
-            alert(`Feedback for ${injury} submitted!`);
-            feedback.value = "";
-        };
-        container.appendChild(submitBtn);
-
         injuryDiv.appendChild(container);
+
+        // Save button for this injury
+        const saveBtn = document.createElement("button");
+        saveBtn.textContent = "Submit Feedback";
+        saveBtn.style.marginTop = "5px";
+        saveBtn.onclick = async () => {
+            const feedbackText = feedback.value;
+
+            // Build rubric object with checked status
+            const rubricData = rubricStates.map(item => ({ criteria: item.criteria, checked: item.checkbox.checked }));
+
+            const updateData = {
+                [`feedback.${injury}`]: feedbackText,
+                [`rubric.${injury}`]: rubricData
+            };
+
+            await updateDoc(doc(db, "scenarios", currentDocId), updateData);
+            alert(`Feedback for ${injury} submitted.`);
+        };
+        container.appendChild(saveBtn);
     });
 
-    // Button to reveal injuries to casualty
-    const pushBtn = document.createElement("button");
-    pushBtn.textContent = "Show Injuries To Casualty";
-    pushBtn.onclick = async () => {
-        await updateDoc(doc(db, "scenarios", currentDocId), { "visibility.injuries": true });
-        alert("Injuries revealed.");
-    };
-    injuryDiv.appendChild(pushBtn);
     infoSection.appendChild(injuryDiv);
 
-    // Other info sections
+    // Other sections
     addPushSection("What Happened", data.whatHappened, "whatHappened");
     addPushSection("Medical History", data.medicalHistory, "medicalHistory");
     addPushSection("Drug Allergies", data.allergies, "allergies");
     addPushSection("Last Meal", data.lastMeal, "lastMeal");
 }
 
-// Helper to create reveal buttons for other sections
 function addPushSection(title, value, field) {
     const div = document.createElement("div");
     div.style.marginTop = "15px";
@@ -205,19 +207,11 @@ function addPushSection(title, value, field) {
     btn.textContent = `Show ${title} To Casualty`;
     btn.onclick = async () => {
         await updateDoc(doc(db, "scenarios", currentDocId), { [`visibility.${field}`]: true });
-        alert(`${title} revealed.`);
+        alert(title + " revealed.");
     };
     div.appendChild(btn);
     infoSection.appendChild(div);
 }
-
-// Clear display function
-function clearDisplay() {
-    displayScenario.textContent = '';
-    displayCasualty.textContent = '';
-    infoSection.innerHTML = '';
-}
 </script>
-
 </body>
 </html>
