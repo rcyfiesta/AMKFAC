@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trainer Interface</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<h1>Trainer Interface</h1>
+
+<label>Scenario</label>
+<select id="scenarioSelect"></select>
+
+<label>Casualty</label>
+<select id="casualtySelect"></select>
+
+<hr>
+
+<h2>Casualty Information</h2>
+<p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
+<p><strong>Casualty:</strong> <span id="displayCasualty"></span></p>
+
+<div id="infoSection"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { getFirestore, collection, query, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
+  authDomain: "amkfac-c85a0.firebaseapp.com",
+  projectId: "amkfac-c85a0",
+  storageBucket: "amkfac-c85a0.firebasestorage.app",
+  messagingSenderId: "320355813529",
+  appId: "1:320355813529:web:a2e979ad989f95acbb5008"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const scenarioSelect = document.getElementById("scenarioSelect");
+const casualtySelect = document.getElementById("casualtySelect");
+const displayScenario = document.getElementById("displayScenario");
+const displayCasualty = document.getElementById("displayCasualty");
+const infoSection = document.getElementById("infoSection");
+
+let allScenarios = [];
+let currentDocId = null;
+
+// Map injuries to images (png or jpg)
+const injuryImages = {
+  abrasion: "images/abrasion.png",
+  allergic: "images/allergic.png",
+  amputation: "images/amputation.png",
+  avulsion: "images/avulsion.png",
+  bee: "images/bee.png",
+  closed: "images/closed.png",
+  contusion: "images/contusion.png",
+  exhaustion: "images/exhaustion.png",
+  first: "images/first.png",
+  incision: "images/incision.png",
+  laceration: "images/laceration.png",
+  not: "images/not.png",
+  open: "images/open.png",
+  penetrating: "images/penetrating.png",
+  pregnant: "images/pregnant.png",
+  puncture: "images/puncture.png",
+  second: "images/second.png",
+  shock: "images/shock.png",
+  snake: "images/snake.png",
+  sprain: "images/sprain.png",
+  strain: "images/strain.png",
+  third: "images/third.png",
+};
+
+// Rubric for each injury
+const injuryRubric = {
+  abrasion: ["Pour saline water on abrasion", "Clean using gauze in ONE circular motion from INNER to OUTER of wound", "Dry the wound with a gauze", "Cover with gauze", "Tape all 4 sides using micropore tape"],
+  allergic: ["Call SCDF 995", "Are you having an allergic reaction?", "I am a first aider, I can help you", "Do you have any medication with you?", "Remove the blue safety cap", "Position orange part at 90 to the outer mid thigh", "Swing and jab it into thigh and hold for 10 seconds", "Remove the EpiPen and massage area for 10 seconds", "Monitor breathing and consciousness every 2 minutes"],
+  amputation: ["Call SCDF 995", "Use a pressure pad to apply direct pressure", "Apply a tourniquet", "Record time you applied the tourniquet and inform paramedics", "Treat for shock", "Wrap part in clean dry gauze", "Place in small bag", "Place the small bag in another bag/container, filled with ice", "Label the bag with name of casualty and time found"],
+  avulsion: ["Use gauze to cover injury", "Bandage to secure gauze and apply pressure to reduce bleeding", "Take any detached skin to hospital"],
+  bee: ["Flick the stinger out using a card OR pull out using tweezers", "Ice the area for 10 - 15 minutes (if in mouth ask casualty suck on ice or sip cold water)", "Monitor for allergic reaction, breathing and consciousness", "Tell casualty see doctor if pain and swelling persists"],
+};
+
+// Load scenarios from Firestore
+const q = query(collection(db, "scenarios"));
+onSnapshot(q, snapshot => {
+    allScenarios = [];
+    snapshot.forEach(docSnap => allScenarios.push({ id: docSnap.id, ...docSnap.data() }));
+
+    const scenarios = [...new Set(allScenarios.map(s => s.scenarioNumber))];
+    scenarioSelect.innerHTML = "<option value=''>Select Scenario</option>";
+    scenarios.forEach(s => scenarioSelect.appendChild(new Option(s, s)));
+});
+
+// Update casualty dropdown
+scenarioSelect.addEventListener("change", () => {
+    const selected = scenarioSelect.value;
+    const casualties = allScenarios
+        .filter(s => s.scenarioNumber === selected)
+        .map(s => s.casualtyName);
+    casualtySelect.innerHTML = "<option value=''>Select Casualty</option>";
+    [...new Set(casualties)].forEach(c => casualtySelect.appendChild(new Option(c, c)));
+});
+
+// Show casualty info
+casualtySelect.addEventListener("change", () => {
+    const scenario = scenarioSelect.value;
+    const casualty = casualtySelect.value;
+    const match = allScenarios.find(s => s.scenarioNumber === scenario && s.casualtyName === casualty);
+    if (!match) return;
+
+    currentDocId = match.id;
+    displayScenario.textContent = match.scenarioNumber;
+    displayCasualty.textContent = match.casualtyName;
+
+    renderInfo(match);
+});
+
+// Render info including injury images, rubrics, and feedback
+function renderInfo(data) {
+    infoSection.innerHTML = "";
+
+    // Injuries
+    const injuryDiv = document.createElement("div");
+    injuryDiv.innerHTML = "<h3>Injuries</h3>";
+    data.injuries.forEach(injury => {
+        const lower = injury.toLowerCase();
+        const container = document.createElement("div");
+        container.style.border = "1px solid #ccc";
+        container.style.padding = "10px";
+        container.style.marginBottom = "10px";
+        container.innerHTML += `<h4>${injury}</h4>`;
+
+        // Image
+        if (injuryImages[lower]) {
+            const img = document.createElement("img");
+            img.src = injuryImages[lower];
+            img.style.width = "150px";
+            img.onerror = function(){ this.style.display = "none"; };
+            container.appendChild(img);
+        }
+
+        // Rubric checkboxes
+        if (injuryRubric[lower]) {
+            injuryRubric[lower].forEach(criteria => {
+                const label = document.createElement("label");
+                label.innerHTML = `<br><input type="checkbox"> ${criteria}`;
+                container.appendChild(label);
+            });
+        }
+
+        // Feedback box
+        const feedback = document.createElement("textarea");
+        feedback.placeholder = "Trainer feedback for this injury";
+        feedback.style.display = "block";
+        feedback.style.marginTop = "5px";
+        container.appendChild(feedback);
+
+        injuryDiv.appendChild(container);
+    });
+
+    const pushBtn = document.createElement("button");
+    pushBtn.textContent = "Show Injuries To Casualty";
+    pushBtn.onclick = async () => {
+        await updateDoc(doc(db, "scenarios", currentDocId), { "visibility.injuries": true });
+        alert("Injuries revealed.");
+    };
+    injuryDiv.appendChild(pushBtn);
+    infoSection.appendChild(injuryDiv);
+
+    // Other sections
+    addPushSection("What Happened", data.whatHappened, "whatHappened");
+    addPushSection("Medical History", data.medicalHistory, "medicalHistory");
+    addPushSection("Drug Allergies", data.allergies, "allergies");
+    addPushSection("Last Meal", data.lastMeal, "lastMeal");
+}
+
+function addPushSection(title, value, field) {
+    const div = document.createElement("div");
+    div.style.marginTop = "15px";
+    div.innerHTML = `<h3>${title}</h3><p>${value}</p>`;
+    const btn = document.createElement("button");
+    btn.textContent = `Show ${title} To Casualty`;
+    btn.onclick = async () => {
+        await updateDoc(doc(db, "scenarios", currentDocId), { [`visibility.${field}`]: true });
+        alert(title + " revealed.");
+    };
+    div.appendChild(btn);
+    infoSection.appendChild(div);
+}
+
+</script>
+</body>
+</html>
