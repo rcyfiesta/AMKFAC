@@ -1,37 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Casualty View</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Casualty View</h1>
+
+    <label>Scenario Number</label>
+    <select id="scenarioNumberSelect">
+        <option value="">-- Loading scenarios --</option>
+    </select>
+
+    <label>Casualty Name</label>
+    <select id="casualtyNameSelect">
+        <option value="">-- Select Scenario First --</option>
+    </select>
+
+    <div id="casualtyInfo">
+        <p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
+        <p><strong>Casualty:</strong> <span id="displayCasualty"></span></p>
+        <p><strong>Injuries:</strong> <span id="displayInjuries"></span></p>
+        <p><strong>What Happened:</strong> <span id="displayWhatHappened"></span></p>
+        <p><strong>Medical History:</strong> <span id="displayMedicalHistory"></span></p>
+        <p><strong>Drug Allergies:</strong> <span id="displayAllergies"></span></p>
+        <p><strong>Last Meal:</strong> <span id="displayLastMeal"></span></p>
+    </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
+  authDomain: "amkfac-c85a0.firebaseapp.com",
+  projectId: "amkfac-c85a0",
+  storageBucket: "amkfac-c85a0.firebasestorage.app",
+  messagingSenderId: "320355813529",
+  appId: "1:320355813529:web:a2e979ad989f95acbb5008"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const scenarioSelect = document.getElementById("scenarioNumberSelect");
+const casualtySelect = document.getElementById("casualtyNameSelect");
+
+const displayScenario = document.getElementById("displayScenario");
+const displayCasualty = document.getElementById("displayCasualty");
+const displayInjuries = document.getElementById("displayInjuries");
+const displayWhatHappened = document.getElementById("displayWhatHappened");
+const displayMedicalHistory = document.getElementById("displayMedicalHistory");
+const displayAllergies = document.getElementById("displayAllergies");
+const displayLastMeal = document.getElementById("displayLastMeal");
+
+let allScenarios = [];
+
+// Listen to scenarios
+const q = query(collection(db, "scenarios"));
+
+onSnapshot(q, snapshot => {
+    allScenarios = [];
+
+    snapshot.forEach(doc => {
+        allScenarios.push(doc.data());
+    });
+
+    const scenarioNumbers = [...new Set(allScenarios.map(s => s.scenarioNumber))];
+
+    scenarioSelect.innerHTML = '<option value="">-- Select Scenario --</option>';
+
+    scenarioNumbers.forEach(num => {
+        const option = document.createElement("option");
+        option.value = num;
+        option.textContent = num;
+        scenarioSelect.appendChild(option);
+    });
+});
+
+scenarioSelect.addEventListener('change', () => {
+
+    const selectedScenario = scenarioSelect.value;
+
+    const casualties = allScenarios
+        .filter(s => s.scenarioNumber === selectedScenario)
+        .map(s => s.casualtyName);
+
+    const uniqueCasualties = [...new Set(casualties)];
+
+    casualtySelect.innerHTML = '<option value="">-- Select Casualty --</option>';
+
+    uniqueCasualties.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        casualtySelect.appendChild(option);
+    });
+});
+
 casualtySelect.addEventListener('change', () => {
 
     const selectedScenario = scenarioSelect.value;
     const selectedCasualty = casualtySelect.value;
 
-    const q = query(collection(db, "scenarios"));
+    const match = allScenarios.find(s =>
+        s.scenarioNumber === selectedScenario &&
+        s.casualtyName === selectedCasualty
+    );
 
-    onSnapshot(q, snapshot => {
-        snapshot.forEach(doc => {
-            const data = doc.data();
+    if (!match) return;
 
-            if (
-                data.scenarioNumber === selectedScenario &&
-                data.casualtyName === selectedCasualty
-            ) {
+    displayScenario.textContent = match.scenarioNumber;
+    displayCasualty.textContent = match.casualtyName;
 
-                displayScenario.textContent = data.scenarioNumber;
-                displayCasualty.textContent = data.casualtyName;
+    displayInjuries.textContent =
+        match.visibility?.injuries ? match.injuries.join(", ") : "";
 
-                displayInjuries.textContent =
-                    data.visibility?.injuries ? data.injuries.join(", ") : "";
+    displayWhatHappened.textContent =
+        match.visibility?.whatHappened ? match.whatHappened : "";
 
-                displayWhatHappened.textContent =
-                    data.visibility?.whatHappened ? data.whatHappened : "";
+    displayMedicalHistory.textContent =
+        match.visibility?.medicalHistory ? match.medicalHistory : "";
 
-                displayMedicalHistory.textContent =
-                    data.visibility?.medicalHistory ? data.medicalHistory : "";
+    displayAllergies.textContent =
+        match.visibility?.allergies ? match.allergies : "";
 
-                displayAllergies.textContent =
-                    data.visibility?.allergies ? data.allergies : "";
-
-                displayLastMeal.textContent =
-                    data.visibility?.lastMeal ? data.lastMeal : "";
-            }
-        });
-    });
+    displayLastMeal.textContent =
+        match.visibility?.lastMeal ? match.lastMeal : "";
 });
+
+</script>
+
+</body>
+</html>
