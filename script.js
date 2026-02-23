@@ -16,6 +16,7 @@ const db = getFirestore(app);
 document.addEventListener("DOMContentLoaded", () => {
 
     const saveBtn = document.getElementById("saveScenario");
+
     if (!saveBtn) return;
 
     const scenarioNumber = document.getElementById("scenarioNumber");
@@ -28,21 +29,42 @@ document.addEventListener("DOMContentLoaded", () => {
     const allergies = document.getElementById("allergies");
     const lastMeal = document.getElementById("lastMeal");
 
+    // Populate scenario numbers 1-80
+    scenarioNumber.innerHTML = "<option value=''>-- Select Scenario --</option>";
+    for (let i = 1; i <= 80; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = i;
+        scenarioNumber.appendChild(option);
+    }
+
     saveBtn.addEventListener("click", async () => {
 
-        if (!scenarioNumber.value || !casualtyNumber.value) {
-            alert("Scenario number and casualty number are required!");
+        if (!scenarioNumber.value || !casualtyNumber.value || !casualtyName.value.trim()) {
+            alert("Scenario number, casualty number, and name are required!");
+            return;
+        }
+
+        // Split injuries and locations
+        const injuryArr = injuries.value
+            ? injuries.value.split(",").map(i => i.trim())
+            : [];
+        const locationArr = injuryLocations.value
+            ? injuryLocations.value.split(",").map(l => l.trim())
+            : [];
+
+        if (locationArr.length && locationArr.length !== injuryArr.length) {
+            alert("Number of injury locations must match number of injuries!");
             return;
         }
 
         try {
-
             await addDoc(collection(db, "scenarios"), {
                 scenarioNumber: scenarioNumber.value,
                 casualtyNumber: casualtyNumber.value,
-                casualtyName: casualtyName.value || "",
-                injuries: injuries.value ? injuries.value.split(",").map(i => i.trim()) : [],
-                injuryLocations: injuryLocations.value ? injuryLocations.value.split(",").map(i => i.trim()) : [],
+                casualtyName: casualtyName.value.trim(),
+                injuries: injuryArr,
+                injuryLocations: locationArr,
                 whatHappened: whatHappened.value || "",
                 medicalHistory: medicalHistory.value || "",
                 allergies: allergies.value || "",

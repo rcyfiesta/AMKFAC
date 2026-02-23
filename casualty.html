@@ -1,101 +1,25 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Casualty View</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<h1>Casualty View</h1>
+<!-- Only snippet of injuries display changes -->
+<div id="displayInjuries"></div>
+<script>
+function displaySelectedCasualty(selectedCasualty, selectedScenario) {
+    const match = allScenarios.find(s =>
+        s.scenarioNumber === selectedScenario &&
+        s.casualtyNumber === selectedCasualty
+    );
 
-<label>Scenario Number</label>
-<select id="scenarioNumberSelect">
-    <option value="">-- Select Scenario --</option>
-    ${Array.from({length:80}, (_,i) => `<option value="${i+1}">${i+1}</option>`).join('')}
-</select>
-
-<label>Casualty Number</label>
-<select id="casualtyNumberSelect">
-    <option value="">-- Select Casualty --</option>
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-</select>
-
-<div id="casualtyInfo">
-    <p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
-    <p><strong>Casualty:</strong> <span id="displayCasualty"></span></p>
-    <div id="displayInjuries"></div>
-    <p><strong>What Happened:</strong> <span id="displayWhatHappened"></span></p>
-    <p><strong>Medical History:</strong> <span id="displayMedicalHistory"></span></p>
-    <p><strong>Drug Allergies:</strong> <span id="displayAllergies"></span></p>
-    <p><strong>Last Meal:</strong> <span id="displayLastMeal"></span></p>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
-  authDomain: "amkfac-c85a0.firebaseapp.com",
-  projectId: "amkfac-c85a0",
-  storageBucket: "amkfac-c85a0.firebasestorage.app",
-  messagingSenderId: "320355813529",
-  appId: "1:320355813529:web:a2e979ad989f95acbb5008"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const scenarioSelect = document.getElementById("scenarioNumberSelect");
-const casualtySelect = document.getElementById("casualtyNumberSelect");
-
-const displayScenario = document.getElementById("displayScenario");
-const displayCasualty = document.getElementById("displayCasualty");
-const displayInjuries = document.getElementById("displayInjuries");
-const displayWhatHappened = document.getElementById("displayWhatHappened");
-const displayMedicalHistory = document.getElementById("displayMedicalHistory");
-const displayAllergies = document.getElementById("displayAllergies");
-const displayLastMeal = document.getElementById("displayLastMeal");
-
-let allScenarios = [];
-
-const q = query(collection(db, "scenarios"));
-onSnapshot(q, snapshot => {
-    allScenarios = [];
-    snapshot.forEach(doc => allScenarios.push({ id: doc.id, ...doc.data() }));
-
-    // Restore display
-    if (scenarioSelect.value && casualtySelect.value) {
-        displaySelectedCasualty(scenarioSelect.value, casualtySelect.value);
-    }
-});
-
-scenarioSelect.addEventListener('change', () => updateDisplay());
-casualtySelect.addEventListener('change', () => updateDisplay());
-
-function updateDisplay() {
-    const scenario = scenarioSelect.value;
-    const casualty = casualtySelect.value;
-    if (!scenario || !casualty) return;
-    displaySelectedCasualty(scenario, casualty);
-}
-
-function displaySelectedCasualty(scenario, casualty) {
-    const match = allScenarios.find(s => s.scenarioNumber === scenario && s.casualtyNumber === casualty);
     if (!match) return;
 
     displayScenario.textContent = match.scenarioNumber;
     displayCasualty.textContent = match.visibility?.casualtyName ? match.casualtyName : "";
 
-    // Show locations of injuries
+    // Display **location of injury** instead of injury name
     displayInjuries.innerHTML = "";
-    if (match.visibility?.injuries && match.injuryLocations) {
-        match.injuryLocations.forEach(loc => {
+    if (match.visibility?.injuries) {
+        match.injuryLocations.forEach((location, idx) => {
             const div = document.createElement("div");
             div.style.marginBottom = "10px";
-            div.innerHTML = `<strong>${loc}</strong>`;
+            const text = location || match.injuries[idx];
+            div.innerHTML = `<strong>${text}</strong>`;
             displayInjuries.appendChild(div);
         });
     }
@@ -106,5 +30,3 @@ function displaySelectedCasualty(scenario, casualty) {
     displayLastMeal.textContent = match.visibility?.lastMeal ? match.lastMeal : "";
 }
 </script>
-</body>
-</html>

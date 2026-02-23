@@ -1,107 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Trainer Interface</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<h1>Trainer Interface</h1>
-
-<label>Scenario Number</label>
-<select id="scenarioSelect">
-    <option value="">-- Select Scenario --</option>
-    ${Array.from({length:80}, (_,i) => `<option value="${i+1}">${i+1}</option>`).join('')}
-</select>
-
-<label>Casualty Number</label>
-<select id="casualtySelect">
-    <option value="">-- Select Casualty --</option>
-    <option value="1">1</option>
-    <option value="2">2</option>
-    <option value="3">3</option>
-</select>
-
-<h2>Casualty Information</h2>
-<p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
-<p><strong>Casualty:</strong> <span id="displayCasualty"></span></p>
-
+<!-- Add button to reveal casualty name -->
 <div id="infoSection"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getFirestore, collection, query, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
-  authDomain: "amkfac-c85a0.firebaseapp.com",
-  projectId: "amkfac-c85a0",
-  storageBucket: "amkfac-c85a0.firebasestorage.app",
-  messagingSenderId: "320355813529",
-  appId: "1:320355813529:web:a2e979ad989f95acbb5008"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const scenarioSelect = document.getElementById("scenarioSelect");
-const casualtySelect = document.getElementById("casualtySelect");
-const displayScenario = document.getElementById("displayScenario");
-const displayCasualty = document.getElementById("displayCasualty");
-const infoSection = document.getElementById("infoSection");
-
-let allScenarios = [];
-let currentDocId = null;
-
-// Load scenarios
-onSnapshot(query(collection(db, "scenarios")), snapshot => {
-    allScenarios = [];
-    snapshot.forEach(docSnap => allScenarios.push({ id: docSnap.id, ...docSnap.data() }));
-});
-
-// Update casualty dropdown
-scenarioSelect.addEventListener("change", () => {
-    const selected = scenarioSelect.value;
-    const casualties = allScenarios.filter(s => s.scenarioNumber === selected)
-        .map(s => s.casualtyNumber);
-    casualtySelect.innerHTML = "<option value=''>Select Casualty</option>";
-    [...new Set(casualties)].forEach(c => casualtySelect.appendChild(new Option(c, c)));
-});
-
-// Display info
-casualtySelect.addEventListener("change", () => {
-    const scenario = scenarioSelect.value;
-    const casualty = casualtySelect.value;
-    const match = allScenarios.find(s => s.scenarioNumber === scenario && s.casualtyNumber === casualty);
-    if (!match) return;
-
-    currentDocId = match.id;
-    displayScenario.textContent = match.scenarioNumber;
-    displayCasualty.textContent = match.casualtyName;
-
+<script>
+function renderInfo(data) {
     infoSection.innerHTML = "";
 
-    // Injuries with rubric (unchanged)
-    if(match.injuries) {
-        match.injuries.forEach(injury => {
-            const div = document.createElement("div");
-            div.style.border = "1px solid #ccc";
-            div.style.padding = "10px";
-            div.style.marginBottom = "10px";
-            div.innerHTML = `<h4>${injury}</h4>`;
-            infoSection.appendChild(div);
-        });
-    }
-
-    // Add button to trigger casualty name
+    // Button to reveal casualty name
+    const nameDiv = document.createElement("div");
     const btn = document.createElement("button");
     btn.textContent = "Show Casualty Name";
     btn.onclick = async () => {
         await updateDoc(doc(db, "scenarios", currentDocId), { "visibility.casualtyName": true });
-        alert("Casualty name revealed!");
+        displayCasualty.textContent = data.casualtyName;
+        alert("Casualty Name revealed!");
     };
-    infoSection.appendChild(btn);
-});
+    nameDiv.appendChild(btn);
+    infoSection.appendChild(nameDiv);
+
+    // Injuries, rubrics, feedback unchanged (display injury names)
+    // ...existing code for injuries...
+}
 </script>
-</body>
-</html>

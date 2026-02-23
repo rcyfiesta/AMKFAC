@@ -10,13 +10,10 @@
 
     <form id="scenarioForm">
         <label>Scenario Number</label>
-        <select id="scenarioNumber" required>
-            <option value="">-- Select Scenario --</option>
-            ${Array.from({length:80}, (_,i) => `<option value="${i+1}">${i+1}</option>`).join('')}
-        </select>
+        <select id="scenarioNumber"></select>
 
         <label>Casualty Number</label>
-        <select id="casualtyNumber" required>
+        <select id="casualtyNumber">
             <option value="">-- Select Casualty --</option>
             <option value="1">1</option>
             <option value="2">2</option>
@@ -24,12 +21,12 @@
         </select>
 
         <label>Casualty Name</label>
-        <input type="text" id="casualtyName">
+        <input type="text" id="casualtyName" required>
 
         <label>Injuries (comma separated)</label>
         <input type="text" id="injuries">
 
-        <label>Location of Injury (comma separated, order same as injuries)</label>
+        <label>Location of Injury (comma separated, in same order as injuries)</label>
         <input type="text" id="injuryLocations">
 
         <label>What Happened</label>
