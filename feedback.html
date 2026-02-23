@@ -1,21 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Trainer Feedback</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-
-<h1>Trainer Feedback</h1>
-
-<div id="feedbackContainer"></div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
   authDomain: "amkfac-c85a0.firebaseapp.com",
@@ -33,66 +19,112 @@ const feedbackContainer = document.getElementById("feedbackContainer");
 const q = query(collection(db, "scenarios"));
 
 onSnapshot(q, snapshot => {
-    feedbackContainer.innerHTML = ""; // clear previous content
+
+    feedbackContainer.innerHTML = "";
+
+    const grouped = {};
+
+    // 🔹 STEP 1: GROUP DATA
     snapshot.forEach(docSnap => {
+
         const data = docSnap.data();
 
-        // Skip if no feedback or no rubric status
         if (!data.feedback && !data.rubric) return;
 
-        const scenarioDiv = document.createElement("div");
-        scenarioDiv.style.border = "2px solid #444";
-        scenarioDiv.style.padding = "10px";
-        scenarioDiv.style.marginBottom = "15px";
+        const scenario = data.scenarioNumber;
+        const casualty = data.casualtyNumber;
 
-        const scenarioHeader = document.createElement("h2");
-        scenarioHeader.textContent = `Scenario: ${data.scenarioNumber}`;
-        scenarioDiv.appendChild(scenarioHeader);
+        if (!grouped[scenario]) {
+            grouped[scenario] = {};
+        }
 
-        const casualtyHeader = document.createElement("h3");
-        casualtyHeader.textContent = `Casualty: ${data.casualtyName}`;
-        scenarioDiv.appendChild(casualtyHeader);
+        if (!grouped[scenario][casualty]) {
+            grouped[scenario][casualty] = {
+                injuries: {}
+            };
+        }
 
         const injuries = data.injuries || [];
+
         injuries.forEach(injury => {
-            const injuryDiv = document.createElement("div");
-            injuryDiv.style.margin = "10px 0";
-            injuryDiv.innerHTML = `<strong>Injury:</strong> ${injury}`;
 
-            // Show feedback if exists
-            if (data.feedback && data.feedback[injury]) {
-                const fb = document.createElement("p");
-                fb.innerHTML = `<strong>Feedback:</strong> ${data.feedback[injury]}`;
-                injuryDiv.appendChild(fb);
-            }
+            grouped[scenario][casualty].injuries[injury] = {
+                feedback: data.feedback?.[injury] || "",
+                rubric: data.rubric?.[injury] || []
+            };
 
-            // Show unticked rubric criteria
-            if (data.rubric && data.rubric[injury]) {
-                const rubricList = document.createElement("ul");
-                rubricList.style.marginLeft = "20px";
-                data.rubric[injury].forEach(item => {
-                    // Show only unticked
-                    if (!item.checked) {
-                        const li = document.createElement("li");
-                        li.textContent = item.criteria;
-                        rubricList.appendChild(li);
-                    }
-                });
-                if (rubricList.childElementCount > 0) {
+        });
+    });
+
+    // 🔹 STEP 2: RENDER GROUPED STRUCTURE
+
+    Object.keys(grouped).sort().forEach(scenario => {
+
+        const scenarioDiv = document.createElement("div");
+        scenarioDiv.style.border = "3px solid black";
+        scenarioDiv.style.padding = "15px";
+        scenarioDiv.style.marginBottom = "20px";
+
+        const scenarioHeader = document.createElement("h2");
+        scenarioHeader.textContent = "Scenario " + scenario;
+        scenarioDiv.appendChild(scenarioHeader);
+
+        Object.keys(grouped[scenario]).sort().forEach(casualty => {
+
+            const casualtyDiv = document.createElement("div");
+            casualtyDiv.style.border = "2px solid #555";
+            casualtyDiv.style.padding = "10px";
+            casualtyDiv.style.marginBottom = "15px";
+
+            const casualtyHeader = document.createElement("h3");
+            casualtyHeader.textContent = "Casualty " + casualty;
+            casualtyDiv.appendChild(casualtyHeader);
+
+            const injuryData = grouped[scenario][casualty].injuries;
+
+            Object.keys(injuryData).forEach(injury => {
+
+                const injuryDiv = document.createElement("div");
+                injuryDiv.style.border = "1px solid #ccc";
+                injuryDiv.style.padding = "8px";
+                injuryDiv.style.marginBottom = "10px";
+
+                injuryDiv.innerHTML = `<strong>Injury:</strong> ${injury}`;
+
+                // Feedback
+                if (injuryData[injury].feedback) {
+                    const fb = document.createElement("p");
+                    fb.innerHTML = `<strong>Feedback:</strong> ${injuryData[injury].feedback}`;
+                    injuryDiv.appendChild(fb);
+                }
+
+                // Unticked rubric
+                const unticked = injuryData[injury].rubric.filter(r => !r.checked);
+
+                if (unticked.length > 0) {
                     const rubricHeader = document.createElement("p");
                     rubricHeader.innerHTML = "<strong>Unticked Criteria:</strong>";
                     injuryDiv.appendChild(rubricHeader);
-                    injuryDiv.appendChild(rubricList);
-                }
-            }
 
-            scenarioDiv.appendChild(injuryDiv);
+                    const ul = document.createElement("ul");
+
+                    unticked.forEach(item => {
+                        const li = document.createElement("li");
+                        li.textContent = item.criteria;
+                        ul.appendChild(li);
+                    });
+
+                    injuryDiv.appendChild(ul);
+                }
+
+                casualtyDiv.appendChild(injuryDiv);
+            });
+
+            scenarioDiv.appendChild(casualtyDiv);
         });
 
         feedbackContainer.appendChild(scenarioDiv);
     });
+
 });
 </script>
-
-</body>
-</html>
