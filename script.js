@@ -16,13 +16,13 @@ const db = getFirestore(app);
 document.addEventListener("DOMContentLoaded", () => {
 
     const saveBtn = document.getElementById("saveScenario");
-
-    // ✅ If button doesn't exist (other pages), stop here safely
     if (!saveBtn) return;
 
     const scenarioNumber = document.getElementById("scenarioNumber");
+    const casualtyNumber = document.getElementById("casualtyNumber");
     const casualtyName = document.getElementById("casualtyName");
     const injuries = document.getElementById("injuries");
+    const injuryLocations = document.getElementById("injuryLocations");
     const whatHappened = document.getElementById("whatHappened");
     const medicalHistory = document.getElementById("medicalHistory");
     const allergies = document.getElementById("allergies");
@@ -30,37 +30,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
     saveBtn.addEventListener("click", async () => {
 
-        if (!scenarioNumber.value.trim() || !casualtyName.value.trim()) {
-            alert("Scenario number and casualty name are required!");
+        if (!scenarioNumber.value || !casualtyNumber.value) {
+            alert("Scenario number and casualty number are required!");
             return;
         }
 
         try {
 
             await addDoc(collection(db, "scenarios"), {
-                scenarioNumber: scenarioNumber.value.trim(),
-                casualtyName: casualtyName.value.trim(),
-                injuries: injuries.value
-                    ? injuries.value.split(",").map(i => i.trim())
-                    : [],
+                scenarioNumber: scenarioNumber.value,
+                casualtyNumber: casualtyNumber.value,
+                casualtyName: casualtyName.value || "",
+                injuries: injuries.value ? injuries.value.split(",").map(i => i.trim()) : [],
+                injuryLocations: injuryLocations.value ? injuryLocations.value.split(",").map(i => i.trim()) : [],
                 whatHappened: whatHappened.value || "",
                 medicalHistory: medicalHistory.value || "",
                 allergies: allergies.value || "",
                 lastMeal: lastMeal.value || "",
-
                 visibility: {
                     injuries: false,
                     whatHappened: false,
                     medicalHistory: false,
                     allergies: false,
-                    lastMeal: false
+                    lastMeal: false,
+                    casualtyName: false
                 },
-
                 timestamp: serverTimestamp()
             });
 
             alert("✅ Scenario saved successfully!");
-
             document.getElementById("scenarioForm").reset();
 
         } catch (error) {
@@ -68,5 +66,4 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("❌ Failed to save scenario. Check console.");
         }
     });
-
 });
