@@ -167,8 +167,6 @@ function renderInfo(data) {
         feedback.style.marginTop = "5px";
         container.appendChild(feedback);
 
-        injuryDiv.appendChild(container);
-
         // Save button for this injury
         const saveBtn = document.createElement("button");
         saveBtn.textContent = "Submit Feedback";
@@ -176,8 +174,10 @@ function renderInfo(data) {
         saveBtn.onclick = async () => {
             const feedbackText = feedback.value;
 
-            // Build rubric object with checked status
-            const rubricData = rubricStates.map(item => ({ criteria: item.criteria, checked: item.checkbox.checked }));
+            const rubricData = rubricStates.map(item => ({
+                criteria: item.criteria,
+                checked: item.checkbox.checked
+            }));
 
             const updateData = {
                 [`feedback.${injury}`]: feedbackText,
@@ -188,7 +188,25 @@ function renderInfo(data) {
             alert(`Feedback for ${injury} submitted.`);
         };
         container.appendChild(saveBtn);
+
+        injuryDiv.appendChild(container);
     });
+
+    // ✅ NEW BUTTON TO RELEASE ALL INJURIES
+    const revealBtn = document.createElement("button");
+    revealBtn.textContent = "Show Injuries To Casualty";
+    revealBtn.style.marginTop = "10px";
+    revealBtn.style.backgroundColor = "#28a745";
+    revealBtn.style.color = "white";
+
+    revealBtn.onclick = async () => {
+        await updateDoc(doc(db, "scenarios", currentDocId), {
+            "visibility.injuries": true
+        });
+        alert("Injuries revealed to casualty.");
+    };
+
+    injuryDiv.appendChild(revealBtn);
 
     infoSection.appendChild(injuryDiv);
 
