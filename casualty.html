@@ -140,17 +140,19 @@ onSnapshot(q, snapshot => {
 });
 
 function updateCasualtyDropdown(selectedScenario, selectedCasualty = null) {
+
     const casualties = allScenarios
         .filter(s => s.scenarioNumber === selectedScenario)
-        .map(s => s.casualtyName);
+        .map(s => s.casualtyNumber);
 
     const uniqueCasualties = [...new Set(casualties)];
 
     casualtySelect.innerHTML = '<option value="">-- Select Casualty --</option>';
-    uniqueCasualties.forEach(name => {
+
+    uniqueCasualties.forEach(num => {
         const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
+        option.value = num;
+        option.textContent = "Casualty " + num;
         casualtySelect.appendChild(option);
     });
 
@@ -174,41 +176,45 @@ casualtySelect.addEventListener('change', () => {
 function displaySelectedCasualty(selectedCasualty, selectedScenario) {
     const match = allScenarios.find(s =>
         s.scenarioNumber === selectedScenario &&
-        s.casualtyName === selectedCasualty
+        s.casualtyNumber === selectedCasualty
     );
 
     if (!match) return;
 
     displayScenario.textContent = match.scenarioNumber;
-    displayCasualty.textContent = match.casualtyName;
+    displayCasualty.textContent = 
+    match.visibility?.casualtyName ? match.casualtyName : "";
 
     displayInjuries.innerHTML = "";
 
-    if (match.visibility?.injuries) {
-        match.injuries.forEach(injury => {
+if (match.visibility?.injuries) {
 
-            const div = document.createElement("div");
-            div.style.marginBottom = "10px";
-            div.innerHTML = `<strong>${injury}</strong><br>`;
+    match.injuries.forEach((injury, index) => {
 
-            const img = document.createElement("img");
-            img.style.width = "150px";
+        const div = document.createElement("div");
+        div.style.marginBottom = "10px";
 
-            const lower = injury.toLowerCase();
+        // 🔥 SHOW LOCATION INSTEAD OF INJURY NAME
+        const location = match.injuryLocations?.[index] || "";
+        div.innerHTML = `<strong>${location}</strong><br>`;
 
-            // ✅ SMART MATCHING (allows "Bee sting", "Severe abrasion", etc.)
-            let matchedKey = Object.keys(injuryImages).find(key =>
-                lower.includes(key)
-            );
+        const img = document.createElement("img");
+        img.style.width = "150px";
 
-            if (matchedKey) {
-                img.src = injuryImages[matchedKey];
-                div.appendChild(img);
-            }
+        const lower = injury.toLowerCase();
 
-            displayInjuries.appendChild(div);
-        });
-    }
+        let matchedKey = Object.keys(injuryImages).find(key =>
+            lower.includes(key)
+        );
+
+        if (matchedKey) {
+            img.src = injuryImages[matchedKey];
+            div.appendChild(img);
+        }
+
+        displayInjuries.appendChild(div);
+    });
+}
 
     displayWhatHappened.textContent = match.visibility?.whatHappened ? match.whatHappened : "";
     displayMedicalHistory.textContent = match.visibility?.medicalHistory ? match.medicalHistory : "";

@@ -98,18 +98,23 @@ onSnapshot(q, snapshot => {
 // Update casualty dropdown
 scenarioSelect.addEventListener("change", () => {
     const selected = scenarioSelect.value;
+
     const casualties = allScenarios
         .filter(s => s.scenarioNumber === selected)
-        .map(s => s.casualtyName);
+        .map(s => s.casualtyNumber);
+
     casualtySelect.innerHTML = "<option value=''>Select Casualty</option>";
-    [...new Set(casualties)].forEach(c => casualtySelect.appendChild(new Option(c, c)));
+
+    [...new Set(casualties)].forEach(num => {
+        casualtySelect.appendChild(new Option("Casualty " + num, num));
+    });
 });
 
 // Show casualty info
 casualtySelect.addEventListener("change", () => {
     const scenario = scenarioSelect.value;
     const casualty = casualtySelect.value;
-    const match = allScenarios.find(s => s.scenarioNumber === scenario && s.casualtyName === casualty);
+    const match = allScenarios.find(s => s.scenarioNumber === scenario && s.casualtyNumber === casualty);
     if (!match) return;
 
     currentDocId = match.id;
@@ -142,6 +147,8 @@ function renderInfo(data) {
             img.onerror = function(){ this.style.display = "none"; };
             container.appendChild(img);
         }
+
+infoSection.appendChild(revealNameBtn);
 
         // Rubric checkboxes
         const rubricStates = [];
@@ -191,6 +198,23 @@ function renderInfo(data) {
 
         injuryDiv.appendChild(container);
     });
+
+    // Reveal Casualty Name button
+    const revealNameBtn = document.createElement("button");
+    revealNameBtn.textContent = "Show Casualty Name To Casualty";
+    revealNameBtn.style.marginTop = "10px";
+    revealNameBtn.style.backgroundColor = "#007bff";
+    revealNameBtn.style.color = "white";
+
+    revealNameBtn.onclick = async () => {
+        await updateDoc(doc(db, "scenarios", currentDocId), {
+            "visibility.casualtyName": true
+        });
+        alert("Casualty name revealed to casualty.");
+    };
+
+    infoSection.appendChild(revealNameBtn);
+
 
     // ✅ NEW BUTTON TO RELEASE ALL INJURIES
     const revealBtn = document.createElement("button");
