@@ -29,7 +29,7 @@ import { getFirestore, collection, query, onSnapshot, doc, updateDoc } from "htt
 
 // Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
+  apiKey: "YOUR_API_KEY",
   authDomain: "amkfac-c85a0.firebaseapp.com",
   projectId: "amkfac-c85a0",
   storageBucket: "amkfac-c85a0.firebasestorage.app",
@@ -75,16 +75,7 @@ const injuryImages = {
   third: "images/third.png",
 };
 
-// Rubric for each injury
-const injuryRubric = {
-  abrasion: ["Pour saline water on abrasion", "Clean using gauze in ONE circular motion from INNER to OUTER of wound", "Dry the wound with a gauze", "Cover with gauze", "Tape all 4 sides using micropore tape"],
-  allergic: ["Call SCDF 995", "Are you having an allergic reaction?", "I am a first aider, I can help you", "Do you have any medication with you?", "Remove the blue safety cap", "Position orange part at 90 to the outer mid thigh", "Swing and jab it into thigh and hold for 10 seconds", "Remove the EpiPen and massage area for 10 seconds", "Monitor breathing and consciousness every 2 minutes"],
-  amputation: ["Call SCDF 995", "Use a pressure pad to apply direct pressure", "Apply a tourniquet", "Record time you applied the tourniquet and inform paramedics", "Treat for shock", "Wrap part in clean dry gauze", "Place in small bag", "Place the small bag in another bag/container, filled with ice", "Label the bag with name of casualty and time found"],
-  avulsion: ["Use gauze to cover injury", "Bandage to secure gauze and apply pressure to reduce bleeding", "Take any detached skin to hospital"],
-  bee: ["Flick the stinger out using a card OR pull out using tweezers", "Ice the area for 10 - 15 minutes (if in mouth ask casualty suck on ice or sip cold water)", "Monitor for allergic reaction, breathing and consciousness", "Tell casualty see doctor if pain and swelling persists"],
-};
-
-// Load scenarios from Firestore
+// Load scenarios
 const q = query(collection(db, "scenarios"));
 onSnapshot(q, snapshot => {
     allScenarios = [];
@@ -95,11 +86,12 @@ onSnapshot(q, snapshot => {
     scenarios.forEach(s => scenarioSelect.appendChild(new Option(s, s)));
 });
 
-// Update casualty dropdown
+// Casualty dropdown
 scenarioSelect.addEventListener("change", () => {
     const selected = scenarioSelect.value;
     const casualties = allScenarios
-        .filter(s => s.scenarioNumber === selected)
+        .filter(s => s.scenarioNumber == selected)
+        .slice(0,3)
         .map(s => s.casualtyName);
     casualtySelect.innerHTML = "<option value=''>Select Casualty</option>";
     [...new Set(casualties)].forEach(c => casualtySelect.appendChild(new Option(c, c)));
@@ -109,7 +101,7 @@ scenarioSelect.addEventListener("change", () => {
 casualtySelect.addEventListener("change", () => {
     const scenario = scenarioSelect.value;
     const casualty = casualtySelect.value;
-    const match = allScenarios.find(s => s.scenarioNumber === scenario && s.casualtyName === casualty);
+    const match = allScenarios.find(s => s.scenarioNumber == scenario && s.casualtyName === casualty);
     if (!match) return;
 
     currentDocId = match.id;
@@ -119,7 +111,6 @@ casualtySelect.addEventListener("change", () => {
     renderInfo(match);
 });
 
-// Render info including injury images, rubrics, and feedback
 function renderInfo(data) {
     infoSection.innerHTML = "";
 
@@ -134,7 +125,6 @@ function renderInfo(data) {
         container.style.marginBottom = "10px";
         container.innerHTML += `<h4>${injury}</h4>`;
 
-        // Image
         if (injuryImages[lower]) {
             const img = document.createElement("img");
             img.src = injuryImages[lower];
@@ -143,92 +133,34 @@ function renderInfo(data) {
             container.appendChild(img);
         }
 
-        // Rubric checkboxes
-        const rubricStates = [];
-        if (injuryRubric[lower]) {
-            injuryRubric[lower].forEach(criteria => {
-                const label = document.createElement("label");
-                const checkbox = document.createElement("input");
-                checkbox.type = "checkbox";
-                checkbox.style.marginRight = "5px";
-                label.appendChild(checkbox);
-                label.appendChild(document.createTextNode(criteria));
-                container.appendChild(label);
-                container.appendChild(document.createElement("br"));
-
-                rubricStates.push({ criteria: criteria, checkbox: checkbox });
-            });
-        }
-
-        // Feedback box
-        const feedback = document.createElement("textarea");
-        feedback.placeholder = "Trainer feedback for this injury";
-        feedback.style.display = "block";
-        feedback.style.marginTop = "5px";
-        container.appendChild(feedback);
-
-        // Save button for this injury
-        const saveBtn = document.createElement("button");
-        saveBtn.textContent = "Submit Feedback";
-        saveBtn.style.marginTop = "5px";
-        saveBtn.onclick = async () => {
-            const feedbackText = feedback.value;
-
-            const rubricData = rubricStates.map(item => ({
-                criteria: item.criteria,
-                checked: item.checkbox.checked
-            }));
-
-            const updateData = {
-                [`feedback.${injury}`]: feedbackText,
-                [`rubric.${injury}`]: rubricData
-            };
-
-            await updateDoc(doc(db, "scenarios", currentDocId), updateData);
-            alert(`Feedback for ${injury} submitted.`);
-        };
-        container.appendChild(saveBtn);
-
         injuryDiv.appendChild(container);
     });
 
-    // ✅ NEW BUTTON TO RELEASE ALL INJURIES
+    // Button to reveal injuries
     const revealBtn = document.createElement("button");
     revealBtn.textContent = "Show Injuries To Casualty";
     revealBtn.style.marginTop = "10px";
     revealBtn.style.backgroundColor = "#28a745";
     revealBtn.style.color = "white";
-
     revealBtn.onclick = async () => {
-        await updateDoc(doc(db, "scenarios", currentDocId), {
-            "visibility.injuries": true
-        });
+        await updateDoc(doc(db, "scenarios", currentDocId), { "visibility.injuries": true });
         alert("Injuries revealed to casualty.");
     };
-
     injuryDiv.appendChild(revealBtn);
 
-    infoSection.appendChild(injuryDiv);
-
-    // Other sections
-    addPushSection("What Happened", data.whatHappened, "whatHappened");
-    addPushSection("Medical History", data.medicalHistory, "medicalHistory");
-    addPushSection("Drug Allergies", data.allergies, "allergies");
-    addPushSection("Last Meal", data.lastMeal, "lastMeal");
-}
-
-function addPushSection(title, value, field) {
-    const div = document.createElement("div");
-    div.style.marginTop = "15px";
-    div.innerHTML = `<h3>${title}</h3><p>${value}</p>`;
-    const btn = document.createElement("button");
-    btn.textContent = `Show ${title} To Casualty`;
-    btn.onclick = async () => {
-        await updateDoc(doc(db, "scenarios", currentDocId), { [`visibility.${field}`]: true });
-        alert(title + " revealed.");
+    // ✅ Button to reveal casualty name
+    const showNameBtn = document.createElement("button");
+    showNameBtn.textContent = "Reveal Casualty Name";
+    showNameBtn.style.marginLeft = "10px";
+    showNameBtn.style.backgroundColor = "#17a2b8";
+    showNameBtn.style.color = "white";
+    showNameBtn.onclick = async () => {
+        await updateDoc(doc(db, "scenarios", currentDocId), { "visibility.casualtyName": true });
+        alert("Casualty name revealed.");
     };
-    div.appendChild(btn);
-    infoSection.appendChild(div);
+    injuryDiv.appendChild(showNameBtn);
+
+    infoSection.appendChild(injuryDiv);
 }
 </script>
 </body>
