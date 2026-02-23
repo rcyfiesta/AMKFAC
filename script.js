@@ -30,7 +30,7 @@ const injuryOptions = [
 const siteOptions = [
 "Skull","Scalp","Forehead","Jaw","Nose","Shoulder","Collarbone",
 "Upper Arm","Forearm","Wrist","Palm","Chest","Rib","Abdomen",
-"Hip","Thigh","Knee","Tibia fibula","Ankle","Foot"
+"Hip","Thigh","Knee","Tibia fibula","Ankle","Foot","NA"
 ];
 
 document.addEventListener("DOMContentLoaded", () => {
