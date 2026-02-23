@@ -1,23 +1,108 @@
-<!-- Add button to reveal casualty name -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trainer Interface</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<h1>Trainer Interface</h1>
+
+<label>Scenario</label>
+<select id="scenarioSelect"></select>
+
+<label>Casualty</label>
+<select id="casualtySelect"></select>
+
+<hr>
+
+<h2>Casualty Information</h2>
+<p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
+<p><strong>Casualty:</strong> <span id="displayCasualty"></span></p>
+
 <div id="infoSection"></div>
 
-<script>
-function renderInfo(data) {
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { getFirestore, collection, query, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
+  authDomain: "amkfac-c85a0.firebaseapp.com",
+  projectId: "amkfac-c85a0",
+  storageBucket: "amkfac-c85a0.firebasestorage.app",
+  messagingSenderId: "320355813529",
+  appId: "1:320355813529:web:a2e979ad989f95acbb5008"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const scenarioSelect = document.getElementById("scenarioSelect");
+const casualtySelect = document.getElementById("casualtySelect");
+const displayScenario = document.getElementById("displayScenario");
+const displayCasualty = document.getElementById("displayCasualty");
+const infoSection = document.getElementById("infoSection");
+
+let allScenarios = [];
+let currentDocId = null;
+
+// Populate scenario numbers 1–80
+scenarioSelect.innerHTML = "<option value=''>-- Select Scenario --</option>";
+for (let i = 1; i <= 80; i++) scenarioSelect.appendChild(new Option(i, i));
+
+// Listen Firestore
+onSnapshot(query(collection(db, "scenarios")), snapshot => {
+    allScenarios = [];
+    snapshot.forEach(docSnap => allScenarios.push({ id: docSnap.id, ...docSnap.data() }));
+    updateCasualtyDropdown();
+});
+
+// Update casualty dropdown
+scenarioSelect.addEventListener("change", updateCasualtyDropdown);
+casualtySelect.addEventListener("change", () => {
+    displaySelectedCasualty(casualtySelect.value, scenarioSelect.value);
+});
+
+function updateCasualtyDropdown() {
+    const selected = scenarioSelect.value;
+    casualtySelect.innerHTML = "<option value=''>-- Select Casualty --</option>";
+    if (!selected) return;
+    const casualties = allScenarios
+        .filter(s => s.scenarioNumber.toString() === selected)
+        .map(s => s.casualtyNumber);
+    [...new Set(casualties)].forEach(c => casualtySelect.appendChild(new Option(c, c)));
+}
+
+function displaySelectedCasualty(casualtyNumber, scenarioNumber) {
+    const match = allScenarios.find(s =>
+        s.scenarioNumber.toString() === scenarioNumber &&
+        s.casualtyNumber.toString() === casualtyNumber
+    );
+    if (!match) return;
+
+    currentDocId = match.id;
+    displayScenario.textContent = match.scenarioNumber;
+    displayCasualty.textContent = match.visibility?.casualtyName ? match.casualtyName : "";
+
     infoSection.innerHTML = "";
 
-    // Button to reveal casualty name
+    // Button to show casualty name
     const nameDiv = document.createElement("div");
     const btn = document.createElement("button");
     btn.textContent = "Show Casualty Name";
     btn.onclick = async () => {
         await updateDoc(doc(db, "scenarios", currentDocId), { "visibility.casualtyName": true });
-        displayCasualty.textContent = data.casualtyName;
+        displayCasualty.textContent = match.casualtyName;
         alert("Casualty Name revealed!");
     };
     nameDiv.appendChild(btn);
     infoSection.appendChild(nameDiv);
 
-    // Injuries, rubrics, feedback unchanged (display injury names)
-    // ...existing code for injuries...
+    // Injuries, rubrics, feedback remain unchanged (display injury names)
+    // ... your existing code for injuries, checkboxes, and feedback ...
 }
 </script>
+</body>
+</html>

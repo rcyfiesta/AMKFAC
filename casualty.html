@@ -1,25 +1,135 @@
-<!-- Only snippet of injuries display changes -->
-<div id="displayInjuries"></div>
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Casualty View</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        #reloadBtn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #reloadBtn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Casualty View</h1>
+<button id="reloadBtn">Reload Page</button>
+
+<label>Scenario Number</label>
+<select id="scenarioNumberSelect"></select>
+
+<label>Casualty Number</label>
+<select id="casualtyNumberSelect">
+    <option value="">-- Select Scenario First --</option>
+</select>
+
+<div id="casualtyInfo">
+    <p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
+    <p><strong>Casualty:</strong> <span id="displayCasualty"></span></p>
+    <div id="displayInjuries"></div>
+    <p><strong>What Happened:</strong> <span id="displayWhatHappened"></span></p>
+    <p><strong>Medical History:</strong> <span id="displayMedicalHistory"></span></p>
+    <p><strong>Drug Allergies:</strong> <span id="displayAllergies"></span></p>
+    <p><strong>Last Meal:</strong> <span id="displayLastMeal"></span></p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
+  authDomain: "amkfac-c85a0.firebaseapp.com",
+  projectId: "amkfac-c85a0",
+  storageBucket: "amkfac-c85a0.firebasestorage.app",
+  messagingSenderId: "320355813529",
+  appId: "1:320355813529:web:a2e979ad989f95acbb5008"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const scenarioSelect = document.getElementById("scenarioNumberSelect");
+const casualtySelect = document.getElementById("casualtyNumberSelect");
+
+const displayScenario = document.getElementById("displayScenario");
+const displayCasualty = document.getElementById("displayCasualty");
+const displayInjuries = document.getElementById("displayInjuries");
+const displayWhatHappened = document.getElementById("displayWhatHappened");
+const displayMedicalHistory = document.getElementById("displayMedicalHistory");
+const displayAllergies = document.getElementById("displayAllergies");
+const displayLastMeal = document.getElementById("displayLastMeal");
+const reloadBtn = document.getElementById("reloadBtn");
+
+let allScenarios = [];
+
+// Reload page button
+reloadBtn.addEventListener("click", () => location.reload());
+
+// Populate scenario numbers 1–80
+scenarioSelect.innerHTML = '<option value="">-- Select Scenario --</option>';
+for (let i = 1; i <= 80; i++) {
+    scenarioSelect.appendChild(new Option(i, i));
+}
+
+// Listen to Firestore
+const q = query(collection(db, "scenarios"));
+onSnapshot(q, snapshot => {
+    allScenarios = [];
+    snapshot.forEach(doc => allScenarios.push({ id: doc.id, ...doc.data() }));
+
+    updateCasualtyDropdown();
+    const sc = scenarioSelect.value;
+    const ca = casualtySelect.value;
+    if (sc && ca) displaySelectedCasualty(ca, sc);
+});
+
+// Update casualty dropdown based on scenario
+scenarioSelect.addEventListener("change", updateCasualtyDropdown);
+casualtySelect.addEventListener("change", () => {
+    displaySelectedCasualty(casualtySelect.value, scenarioSelect.value);
+});
+
+function updateCasualtyDropdown() {
+    const selectedScenario = scenarioSelect.value;
+    casualtySelect.innerHTML = "<option value=''>-- Select Casualty --</option>";
+    if (!selectedScenario) return;
+    const casualties = allScenarios
+        .filter(s => s.scenarioNumber.toString() === selectedScenario)
+        .map(s => s.casualtyNumber);
+    [...new Set(casualties)].forEach(n => casualtySelect.appendChild(new Option(n, n)));
+    clearDisplay();
+}
+
+// Display casualty info
 function displaySelectedCasualty(selectedCasualty, selectedScenario) {
     const match = allScenarios.find(s =>
-        s.scenarioNumber === selectedScenario &&
-        s.casualtyNumber === selectedCasualty
+        s.scenarioNumber.toString() === selectedScenario &&
+        s.casualtyNumber.toString() === selectedCasualty
     );
-
-    if (!match) return;
+    if (!match) return clearDisplay();
 
     displayScenario.textContent = match.scenarioNumber;
     displayCasualty.textContent = match.visibility?.casualtyName ? match.casualtyName : "";
 
-    // Display **location of injury** instead of injury name
     displayInjuries.innerHTML = "";
-    if (match.visibility?.injuries) {
-        match.injuryLocations.forEach((location, idx) => {
+    if (match.visibility?.injuries && match.injuryLocations) {
+        match.injuryLocations.forEach((loc, idx) => {
             const div = document.createElement("div");
             div.style.marginBottom = "10px";
-            const text = location || match.injuries[idx];
-            div.innerHTML = `<strong>${text}</strong>`;
+            div.innerHTML = `<strong>${loc || match.injuries[idx]}</strong>`;
             displayInjuries.appendChild(div);
         });
     }
@@ -29,4 +139,16 @@ function displaySelectedCasualty(selectedCasualty, selectedScenario) {
     displayAllergies.textContent = match.visibility?.allergies ? match.allergies : "";
     displayLastMeal.textContent = match.visibility?.lastMeal ? match.lastMeal : "";
 }
+
+function clearDisplay() {
+    displayScenario.textContent = '';
+    displayCasualty.textContent = '';
+    displayInjuries.innerHTML = '';
+    displayWhatHappened.textContent = '';
+    displayMedicalHistory.textContent = '';
+    displayAllergies.textContent = '';
+    displayLastMeal.textContent = '';
+}
 </script>
+</body>
+</html>
