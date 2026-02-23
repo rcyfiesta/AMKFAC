@@ -167,9 +167,12 @@ function renderInfo(data) {
         container.style.border = "1px solid #ccc";
         container.style.padding = "10px";
         container.style.marginBottom = "10px";
+        const side = injuryObj.side === "NA" ? "" : injuryObj.side;
+        const site = injuryObj.site === "NA" ? "" : injuryObj.site;
+        const locationText = `${side} ${site}`.trim();
         container.innerHTML += `
             <h4>${injury}</h4>
-            <p><strong>Location:</strong> ${injuryObj.side} ${injuryObj.site}</p>
+            ${locationText ? `<p><strong>Location:</strong> ${locationText}</p>` : ""}
 `;
 
         // Image
