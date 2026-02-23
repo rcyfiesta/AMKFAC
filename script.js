@@ -30,7 +30,7 @@ const injuryOptions = [
 const siteOptions = [
 "Skull","Scalp","Forehead","Jaw","Nose","Shoulder","Collarbone",
 "Upper Arm","Forearm","Wrist","Palm","Chest","Rib","Abdomen",
-"Hip","Thigh","Knee","Tibia fibula","Ankle","Foot","NA"
+"Hip","Thigh","Knee","Tibia fibula","Ankle","Foot"
 ];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -77,11 +77,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         injuryRows.forEach(row => {
             const type = row.querySelector(".injuryType").value;
-            const direction = row.querySelector(".injuryDirection").value;
+            const side = row.querySelector(".injurySide").value;
             const site = row.querySelector(".injurySite").value;
 
             if (type) {
-                injuryArr.push({ type, direction, site });
+                injuryArr.push({ type, side, site });
             }
         });
 

@@ -218,7 +218,14 @@ if (match.visibility?.injuries && match.injuries) {
         const div = document.createElement("div");
         div.style.marginBottom = "10px";
 
-        div.innerHTML = `<strong>${injuryObj.direction} ${injuryObj.site}</strong><br>`;
+        const side = injuryObj.side === "NA" ? "" : injuryObj.side;
+        const site = injuryObj.site === "NA" ? "" : injuryObj.site;
+        
+        const locationText = `${side} ${site}`.trim();
+
+        div.innerHTML = locationText
+            ? `<strong>${locationText}</strong><br>`
+            : `<br>`;
 
         const lower = injuryObj.type.toLowerCase();
         let matchedKey = Object.keys(injuryImages)
