@@ -59,11 +59,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.querySelectorAll(".injurySite").forEach(select => {
-        select.innerHTML = "<option value=''>Select Site</option>";
+
+        select.innerHTML = "";
+
+        // Add NA first
+        select.appendChild(new Option("NA", "NA"));
+
+        // Add other sites
         siteOptions.forEach(site => {
             select.appendChild(new Option(site, site));
-        });
     });
+
+});
 
     saveBtn.addEventListener("click", async () => {
 
