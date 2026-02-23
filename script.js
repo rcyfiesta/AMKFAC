@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        const injuryRows = document.querySelectorAll(".injuryRow");
+        const injuryRows = document.querySelectorAll(".injuryBlock");
         const injuryArr = [];
 
         injuryRows.forEach(row => {

@@ -55,3 +55,16 @@ nav a {
 nav a:hover {
     text-decoration: underline;
 }
+
+.injuryBlock {
+    border: 2px solid #ccc;
+    padding: 12px;
+    margin-bottom: 15px;
+    background-color: #ffffff;
+    border-radius: 6px;
+}
+
+.injuryBlock h4 {
+    margin-top: 0;
+    color: #007BFF;
+}
