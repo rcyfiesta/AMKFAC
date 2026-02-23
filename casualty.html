@@ -79,7 +79,7 @@ const reloadBtn = document.getElementById("reloadBtn");
 
 let allScenarios = [];
 
-// Injury images mapping
+/* ✅ FIXED: Injury image mapping (same as trainer page) */
 const injuryImages = {
   abrasion: "images/abrasion.png",
   allergic: "images/allergic.png",
@@ -105,7 +105,7 @@ const injuryImages = {
   third: "images/third.png",
 };
 
-// Reload button
+// Reload page while keeping selections
 reloadBtn.addEventListener("click", () => {
     localStorage.setItem("selectedScenario", scenarioSelect.value);
     localStorage.setItem("selectedCasualty", casualtySelect.value);
@@ -121,7 +121,10 @@ onSnapshot(q, snapshot => {
     const scenarioNumbers = [...new Set(allScenarios.map(s => s.scenarioNumber))];
     scenarioSelect.innerHTML = '<option value="">-- Select Scenario --</option>';
     scenarioNumbers.forEach(num => {
-        scenarioSelect.appendChild(new Option(num, num));
+        const option = document.createElement("option");
+        option.value = num;
+        option.textContent = num;
+        scenarioSelect.appendChild(option);
     });
 
     const savedScenario = localStorage.getItem("selectedScenario");
@@ -138,12 +141,18 @@ onSnapshot(q, snapshot => {
 
 function updateCasualtyDropdown(selectedScenario, selectedCasualty = null) {
     const casualties = allScenarios
-        .filter(s => s.scenarioNumber == selectedScenario)
+        .filter(s => s.scenarioNumber === selectedScenario)
         .map(s => s.casualtyName);
 
-    const uniqueCasualties = [...new Set(casualties)].slice(0,3); // limit to 3
+    const uniqueCasualties = [...new Set(casualties)];
+
     casualtySelect.innerHTML = '<option value="">-- Select Casualty --</option>';
-    uniqueCasualties.forEach(name => casualtySelect.appendChild(new Option(name, name)));
+    uniqueCasualties.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        casualtySelect.appendChild(option);
+    });
 
     if (selectedCasualty && uniqueCasualties.includes(selectedCasualty)) {
         casualtySelect.value = selectedCasualty;
@@ -164,28 +173,36 @@ casualtySelect.addEventListener('change', () => {
 
 function displaySelectedCasualty(selectedCasualty, selectedScenario) {
     const match = allScenarios.find(s =>
-        s.scenarioNumber == selectedScenario &&
+        s.scenarioNumber === selectedScenario &&
         s.casualtyName === selectedCasualty
     );
+
     if (!match) return;
 
     displayScenario.textContent = match.scenarioNumber;
-    displayCasualty.textContent = match.visibility?.casualtyName ? match.casualtyName : "Hidden by trainer";
+    displayCasualty.textContent = match.casualtyName;
 
     displayInjuries.innerHTML = "";
+
     if (match.visibility?.injuries) {
-        match.locations?.forEach((loc, index) => {
-            const injuryName = match.injuries[index];
+        match.injuries.forEach(injury => {
+
             const div = document.createElement("div");
             div.style.marginBottom = "10px";
-            div.innerHTML = `<strong>${loc}</strong><br>`;
+            div.innerHTML = `<strong>${injury}</strong><br>`;
 
-            const lower = injuryName.toLowerCase();
-            let matchedKey = Object.keys(injuryImages).find(key => lower.includes(key));
+            const img = document.createElement("img");
+            img.style.width = "150px";
+
+            const lower = injury.toLowerCase();
+
+            // ✅ SMART MATCHING (allows "Bee sting", "Severe abrasion", etc.)
+            let matchedKey = Object.keys(injuryImages).find(key =>
+                lower.includes(key)
+            );
+
             if (matchedKey) {
-                const img = document.createElement("img");
                 img.src = injuryImages[matchedKey];
-                img.style.width = "150px";
                 div.appendChild(img);
             }
 
