@@ -18,8 +18,19 @@
 <hr>
 
 <h2>Casualty Information</h2>
-<p><strong>Scenario:</strong> <span id="displayScenario"></span></p>
-<p><strong>Casualty:</strong> <span id="displayCasualty"></span></p>
+
+<p>
+  <strong>Scenario:</strong> 
+  <span id="displayScenario"></span>
+</p>
+
+<p>
+  <strong>Casualty:</strong> 
+  <span id="displayCasualty"></span>
+  <button id="revealNameBtn" style="margin-left:10px; background-color:#007bff; color:white;">
+    Show Name To Casualty
+  </button>
+</p>
 
 <div id="infoSection"></div>
 
@@ -43,6 +54,21 @@ const scenarioSelect = document.getElementById("scenarioSelect");
 const casualtySelect = document.getElementById("casualtySelect");
 const displayScenario = document.getElementById("displayScenario");
 const displayCasualty = document.getElementById("displayCasualty");
+const revealNameBtn = document.getElementById("revealNameBtn");
+
+revealNameBtn.addEventListener("click", async () => {
+
+    if (!currentDocId) {
+        alert("Please select a scenario and casualty first.");
+        return;
+    }
+
+    await updateDoc(doc(db, "scenarios", currentDocId), {
+        "visibility.casualtyName": true
+    });
+
+    alert("Casualty name revealed to casualty.");
+});
 const infoSection = document.getElementById("infoSection");
 
 let allScenarios = [];
@@ -197,21 +223,6 @@ function renderInfo(data) {
         injuryDiv.appendChild(container);
     });
 
-    // Reveal name button (OUTSIDE LOOP ✅)
-    const revealNameBtn = document.createElement("button");
-    revealNameBtn.textContent = "Show Casualty Name To Casualty";
-    revealNameBtn.style.marginTop = "10px";
-    revealNameBtn.style.backgroundColor = "#007bff";
-    revealNameBtn.style.color = "white";
-
-    revealNameBtn.onclick = async () => {
-        await updateDoc(doc(db, "scenarios", currentDocId), {
-            "visibility.casualtyName": true
-        });
-        alert("Casualty name revealed to casualty.");
-    };
-
-    injuryDiv.appendChild(revealNameBtn);
 
     // Reveal injuries button
     const revealBtn = document.createElement("button");
