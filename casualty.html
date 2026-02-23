@@ -5,7 +5,6 @@
     <title>Casualty View</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Reload button at top-right */
         #reloadBtn {
             position: fixed;
             top: 10px;
@@ -54,7 +53,7 @@ import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic
 
 // Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
+  apiKey: "YOUR_API_KEY",
   authDomain: "amkfac-c85a0.firebaseapp.com",
   projectId: "amkfac-c85a0",
   storageBucket: "amkfac-c85a0.firebasestorage.app",
@@ -80,6 +79,32 @@ const reloadBtn = document.getElementById("reloadBtn");
 
 let allScenarios = [];
 
+/* ✅ FIXED: Injury image mapping (same as trainer page) */
+const injuryImages = {
+  abrasion: "images/abrasion.png",
+  allergic: "images/allergic.png",
+  amputation: "images/amputation.png",
+  avulsion: "images/avulsion.png",
+  bee: "images/bee.png",
+  closed: "images/closed.png",
+  contusion: "images/contusion.png",
+  exhaustion: "images/exhaustion.png",
+  first: "images/first.png",
+  incision: "images/incision.png",
+  laceration: "images/laceration.png",
+  not: "images/not.png",
+  open: "images/open.png",
+  penetrating: "images/penetrating.png",
+  pregnant: "images/pregnant.png",
+  puncture: "images/puncture.png",
+  second: "images/second.png",
+  shock: "images/shock.png",
+  snake: "images/snake.png",
+  sprain: "images/sprain.png",
+  strain: "images/strain.png",
+  third: "images/third.png",
+};
+
 // Reload page while keeping selections
 reloadBtn.addEventListener("click", () => {
     localStorage.setItem("selectedScenario", scenarioSelect.value);
@@ -87,13 +112,12 @@ reloadBtn.addEventListener("click", () => {
     location.reload();
 });
 
-// Firestore listener
+// Firestore live listener
 const q = query(collection(db, "scenarios"));
 onSnapshot(q, snapshot => {
     allScenarios = [];
     snapshot.forEach(doc => allScenarios.push({ id: doc.id, ...doc.data() }));
 
-    // Populate scenario dropdown
     const scenarioNumbers = [...new Set(allScenarios.map(s => s.scenarioNumber))];
     scenarioSelect.innerHTML = '<option value="">-- Select Scenario --</option>';
     scenarioNumbers.forEach(num => {
@@ -103,7 +127,6 @@ onSnapshot(q, snapshot => {
         scenarioSelect.appendChild(option);
     });
 
-    // Restore previous selections
     const savedScenario = localStorage.getItem("selectedScenario");
     const savedCasualty = localStorage.getItem("selectedCasualty");
 
@@ -116,11 +139,11 @@ onSnapshot(q, snapshot => {
     }
 });
 
-// Update casualty dropdown with optional selected casualty
 function updateCasualtyDropdown(selectedScenario, selectedCasualty = null) {
     const casualties = allScenarios
         .filter(s => s.scenarioNumber === selectedScenario)
         .map(s => s.casualtyName);
+
     const uniqueCasualties = [...new Set(casualties)];
 
     casualtySelect.innerHTML = '<option value="">-- Select Casualty --</option>';
@@ -131,7 +154,6 @@ function updateCasualtyDropdown(selectedScenario, selectedCasualty = null) {
         casualtySelect.appendChild(option);
     });
 
-    // Restore previously selected casualty
     if (selectedCasualty && uniqueCasualties.includes(selectedCasualty)) {
         casualtySelect.value = selectedCasualty;
     }
@@ -139,19 +161,16 @@ function updateCasualtyDropdown(selectedScenario, selectedCasualty = null) {
     clearDisplay();
 }
 
-// Scenario listener
 scenarioSelect.addEventListener('change', () => {
     localStorage.setItem("selectedScenario", scenarioSelect.value);
     updateCasualtyDropdown(scenarioSelect.value);
 });
 
-// Casualty listener
 casualtySelect.addEventListener('change', () => {
     localStorage.setItem("selectedCasualty", casualtySelect.value);
     displaySelectedCasualty(casualtySelect.value, scenarioSelect.value);
 });
 
-// Display casualty info
 function displaySelectedCasualty(selectedCasualty, selectedScenario) {
     const match = allScenarios.find(s =>
         s.scenarioNumber === selectedScenario &&
@@ -163,18 +182,30 @@ function displaySelectedCasualty(selectedCasualty, selectedScenario) {
     displayScenario.textContent = match.scenarioNumber;
     displayCasualty.textContent = match.casualtyName;
 
-    // Injuries with images
     displayInjuries.innerHTML = "";
+
     if (match.visibility?.injuries) {
         match.injuries.forEach(injury => {
+
             const div = document.createElement("div");
             div.style.marginBottom = "10px";
             div.innerHTML = `<strong>${injury}</strong><br>`;
+
             const img = document.createElement("img");
-            img.src = "images/" + injury.toLowerCase() + ".png";
             img.style.width = "150px";
-            img.onerror = function(){ this.style.display = "none"; };
-            div.appendChild(img);
+
+            const lower = injury.toLowerCase();
+
+            // ✅ SMART MATCHING (allows "Bee sting", "Severe abrasion", etc.)
+            let matchedKey = Object.keys(injuryImages).find(key =>
+                lower.includes(key)
+            );
+
+            if (matchedKey) {
+                img.src = injuryImages[matchedKey];
+                div.appendChild(img);
+            }
+
             displayInjuries.appendChild(div);
         });
     }
@@ -185,7 +216,6 @@ function displaySelectedCasualty(selectedCasualty, selectedScenario) {
     displayLastMeal.textContent = match.visibility?.lastMeal ? match.lastMeal : "";
 }
 
-// Clear display
 function clearDisplay() {
     displayScenario.textContent = '';
     displayCasualty.textContent = '';
