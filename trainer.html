@@ -159,14 +159,18 @@ function renderInfo(data) {
     const injuryDiv = document.createElement("div");
     injuryDiv.innerHTML = "<h3>Injuries</h3>";
 
-    data.injuries.forEach(injury => {
+    data.injuries.forEach(injuryObj => {
 
+        const injury = injuryObj.type;
         const lower = injury.toLowerCase();
         const container = document.createElement("div");
         container.style.border = "1px solid #ccc";
         container.style.padding = "10px";
         container.style.marginBottom = "10px";
-        container.innerHTML += `<h4>${injury}</h4>`;
+        container.innerHTML += `
+            <h4>${injury}</h4>
+            <p><strong>Location:</strong> ${injuryObj.direction} ${injuryObj.site}</p>
+`;
 
         // Image
         if (injuryImages[lower]) {

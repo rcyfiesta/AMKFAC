@@ -23,11 +23,37 @@
         <label>Casualty Name</label>
         <input type="text" id="casualtyName" required>
 
-        <label>Injuries (comma separated)</label>
-        <input type="text" id="injuries">
+        <h3>Injuries (Maximum 3)</h3>
 
-        <label>Location of Injury (comma separated, in same order as injuries)</label>
-        <input type="text" id="injuryLocations">
+        <div class="injuryRow">
+            <select class="injuryType"></select>
+            <select class="injuryDirection">
+                <option value="NA">NA</option>
+                <option value="Right">Right</option>
+                <option value="Left">Left</option>
+            </select>
+            <select class="injurySite"></select>
+        </div>
+
+        <div class="injuryRow">
+            <select class="injuryType"></select>
+            <select class="injuryDirection">
+                <option value="NA">NA</option>
+                <option value="Right">Right</option>
+                <option value="Left">Left</option>
+            </select>
+            <select class="injurySite"></select>
+        </div>
+
+        <div class="injuryRow">
+            <select class="injuryType"></select>
+            <select class="injuryDirection">
+                <option value="NA">NA</option>
+                <option value="Right">Right</option>
+                <option value="Left">Left</option>
+            </select>
+            <select class="injurySite"></select>
+        </div>
 
         <label>What Happened</label>
         <textarea id="whatHappened"></textarea>

@@ -63,7 +63,8 @@ onSnapshot(q, snapshot => {
 
         const injuries = data.injuries || [];
 
-        injuries.forEach(injury => {
+        injuries.forEach(injuryObj => {
+            const injury = injuryObj.type;
             grouped[scenario][casualty].injuries[injury] = {
                 feedback: data.feedback?.[injury] || "",
                 rubric: data.rubric?.[injury] || []

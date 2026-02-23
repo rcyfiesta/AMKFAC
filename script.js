@@ -13,30 +13,57 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const injuryOptions = [
+"CPR","AED","1st Degree Burn","2nd Degree Burn","3rd Degree Burn",
+"Abdominal Thrust","Abrasion","Allergic Reaction (Severe)","Asthma",
+"Avulsion","Bee Sting","Bleeding","Chest Thrust","Choking (Unconscious)",
+"Closed Fracture","Contusion","Dislocation","Epistaxis (Nose Bleed)",
+"Fainting","Heat Cramp","Heat Exhaustion","Heat Stroke","Hyperventilation",
+"Incision","Laceration","Muscle Cramp","Open Fracture","Partial Choking",
+"Snake Bite","Sprain","Strain","Stroke","Amputation","Animal Bite",
+"Chemical Burn","Compression","Concussion","Electrical Burn","Fits",
+"Foreign Bodies in Eye","Hypoglycaemia/Low Blood Sugar","Jellyfish Sting",
+"Penetrating Eye Injury","Penetrating Object","Scorpion Sting","Shock",
+"Skull Fracture","Spinal Injury","Sun Burn"
+];
+
+const siteOptions = [
+"Skull","Scalp","Forehead","Jaw","Nose","Shoulder","Collarbone",
+"Upper Arm","Forearm","Wrist","Palm","Chest","Rib","Abdomen",
+"Hip","Thigh","Knee","Tibia fibula","Ankle","Foot"
+];
+
 document.addEventListener("DOMContentLoaded", () => {
 
     const saveBtn = document.getElementById("saveScenario");
-
     if (!saveBtn) return;
 
     const scenarioNumber = document.getElementById("scenarioNumber");
     const casualtyNumber = document.getElementById("casualtyNumber");
     const casualtyName = document.getElementById("casualtyName");
-    const injuries = document.getElementById("injuries");
-    const injuryLocations = document.getElementById("injuryLocations");
     const whatHappened = document.getElementById("whatHappened");
     const medicalHistory = document.getElementById("medicalHistory");
     const allergies = document.getElementById("allergies");
     const lastMeal = document.getElementById("lastMeal");
 
-    // Populate scenario numbers 1-80
     scenarioNumber.innerHTML = "<option value=''>-- Select Scenario --</option>";
     for (let i = 1; i <= 80; i++) {
-        const option = document.createElement("option");
-        option.value = i;
-        option.textContent = i;
-        scenarioNumber.appendChild(option);
+        scenarioNumber.appendChild(new Option(i, i));
     }
+
+    document.querySelectorAll(".injuryType").forEach(select => {
+        select.innerHTML = "<option value=''>Select Injury</option>";
+        injuryOptions.forEach(injury => {
+            select.appendChild(new Option(injury, injury));
+        });
+    });
+
+    document.querySelectorAll(".injurySite").forEach(select => {
+        select.innerHTML = "<option value=''>Select Site</option>";
+        siteOptions.forEach(site => {
+            select.appendChild(new Option(site, site));
+        });
+    });
 
     saveBtn.addEventListener("click", async () => {
 
@@ -45,18 +72,18 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Split injuries and locations
-        const injuryArr = injuries.value
-            ? injuries.value.split(",").map(i => i.trim())
-            : [];
-        const locationArr = injuryLocations.value
-            ? injuryLocations.value.split(",").map(l => l.trim())
-            : [];
+        const injuryRows = document.querySelectorAll(".injuryRow");
+        const injuryArr = [];
 
-        if (locationArr.length && locationArr.length !== injuryArr.length) {
-            alert("Number of injury locations must match number of injuries!");
-            return;
-        }
+        injuryRows.forEach(row => {
+            const type = row.querySelector(".injuryType").value;
+            const direction = row.querySelector(".injuryDirection").value;
+            const site = row.querySelector(".injurySite").value;
+
+            if (type) {
+                injuryArr.push({ type, direction, site });
+            }
+        });
 
         try {
             await addDoc(collection(db, "scenarios"), {
@@ -64,7 +91,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 casualtyNumber: casualtyNumber.value,
                 casualtyName: casualtyName.value.trim(),
                 injuries: injuryArr,
-                injuryLocations: locationArr,
                 whatHappened: whatHappened.value || "",
                 medicalHistory: medicalHistory.value || "",
                 allergies: allergies.value || "",
@@ -85,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (error) {
             console.error("Save error:", error);
-            alert("❌ Failed to save scenario. Check console.");
+            alert("❌ Failed to save scenario.");
         }
     });
 });

@@ -211,35 +211,32 @@ function displaySelectedCasualty(selectedCasualty, selectedScenario) {
 
     displayInjuries.innerHTML = "";
 
-    if (match.visibility?.injuries) {
-        match.injuries.forEach((injury, index) => {
-            const div = document.createElement("div");
-            div.style.marginBottom = "10px";
+if (match.visibility?.injuries && match.injuries) {
 
-            // Show location instead of injury name
-            const location = match.injuryLocations?.[index] || "";
-            div.innerHTML = `<strong>${location}</strong><br>`;
+    match.injuries.forEach(injuryObj => {
 
-            const lower = injury.toLowerCase();
-            let matchedKey = Object.keys(injuryImages).find(key => lower.includes(key));
+        const div = document.createElement("div");
+        div.style.marginBottom = "10px";
 
-            if (matchedKey) {
-                const img = document.createElement("img");
-                img.src = injuryImages[matchedKey];
-                img.style.width = "150px";
+        div.innerHTML = `<strong>${injuryObj.direction} ${injuryObj.site}</strong><br>`;
 
-                // If image fails to load, show text description instead
-                img.onerror = () => showTextDescription(div, injury, lower);
+        const lower = injuryObj.type.toLowerCase();
+        let matchedKey = Object.keys(injuryImages)
+            .find(key => lower.includes(key));
 
-                div.appendChild(img);
-            } else {
-                // No image mapping, show text description
-                showTextDescription(div, injury, lower);
-            }
+        if (matchedKey) {
+            const img = document.createElement("img");
+            img.src = injuryImages[matchedKey];
+            img.style.width = "150px";
+            img.onerror = () => showTextDescription(div, injuryObj.type, lower);
+            div.appendChild(img);
+        } else {
+            showTextDescription(div, injuryObj.type, lower);
+        }
 
-            displayInjuries.appendChild(div);
-        });
-    }
+        displayInjuries.appendChild(div);
+    });
+}
 
     displayWhatHappened.textContent = match.visibility?.whatHappened ? match.whatHappened : "";
     displayMedicalHistory.textContent = match.visibility?.medicalHistory ? match.medicalHistory : "";
