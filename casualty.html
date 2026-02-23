@@ -24,13 +24,16 @@
 <body>
 
 <h1>Casualty View</h1>
+
 <button id="reloadBtn">Reload Page</button>
 
 <label>Scenario Number</label>
-<select id="scenarioNumberSelect"></select>
+<select id="scenarioNumberSelect">
+    <option value="">-- Loading scenarios --</option>
+</select>
 
-<label>Casualty Number</label>
-<select id="casualtyNumberSelect">
+<label>Casualty Name</label>
+<select id="casualtyNameSelect">
     <option value="">-- Select Scenario First --</option>
 </select>
 
@@ -50,7 +53,7 @@ import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic
 
 // Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyBvJpARNfHPu8j8E99_3CIsNbSBVzBCFQA",
+  apiKey: "YOUR_API_KEY",
   authDomain: "amkfac-c85a0.firebaseapp.com",
   projectId: "amkfac-c85a0",
   storageBucket: "amkfac-c85a0.firebasestorage.app",
@@ -62,7 +65,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const scenarioSelect = document.getElementById("scenarioNumberSelect");
-const casualtySelect = document.getElementById("casualtyNumberSelect");
+const casualtySelect = document.getElementById("casualtyNameSelect");
 
 const displayScenario = document.getElementById("displayScenario");
 const displayCasualty = document.getElementById("displayCasualty");
@@ -71,65 +74,138 @@ const displayWhatHappened = document.getElementById("displayWhatHappened");
 const displayMedicalHistory = document.getElementById("displayMedicalHistory");
 const displayAllergies = document.getElementById("displayAllergies");
 const displayLastMeal = document.getElementById("displayLastMeal");
+
 const reloadBtn = document.getElementById("reloadBtn");
 
 let allScenarios = [];
 
-// Reload page button
-reloadBtn.addEventListener("click", () => location.reload());
+/* ✅ FIXED: Injury image mapping (same as trainer page) */
+const injuryImages = {
+  abrasion: "images/abrasion.png",
+  allergic: "images/allergic.png",
+  amputation: "images/amputation.png",
+  avulsion: "images/avulsion.png",
+  bee: "images/bee.png",
+  closed: "images/closed.png",
+  contusion: "images/contusion.png",
+  exhaustion: "images/exhaustion.png",
+  first: "images/first.png",
+  incision: "images/incision.png",
+  laceration: "images/laceration.png",
+  not: "images/not.png",
+  open: "images/open.png",
+  penetrating: "images/penetrating.png",
+  pregnant: "images/pregnant.png",
+  puncture: "images/puncture.png",
+  second: "images/second.png",
+  shock: "images/shock.png",
+  snake: "images/snake.png",
+  sprain: "images/sprain.png",
+  strain: "images/strain.png",
+  third: "images/third.png",
+};
 
-// Populate scenario numbers 1–80
-scenarioSelect.innerHTML = '<option value="">-- Select Scenario --</option>';
-for (let i = 1; i <= 80; i++) {
-    scenarioSelect.appendChild(new Option(i, i));
-}
+// Reload page while keeping selections
+reloadBtn.addEventListener("click", () => {
+    localStorage.setItem("selectedScenario", scenarioSelect.value);
+    localStorage.setItem("selectedCasualty", casualtySelect.value);
+    location.reload();
+});
 
-// Listen to Firestore
+// Firestore live listener
 const q = query(collection(db, "scenarios"));
 onSnapshot(q, snapshot => {
     allScenarios = [];
     snapshot.forEach(doc => allScenarios.push({ id: doc.id, ...doc.data() }));
 
-    updateCasualtyDropdown();
-    const sc = scenarioSelect.value;
-    const ca = casualtySelect.value;
-    if (sc && ca) displaySelectedCasualty(ca, sc);
+    const scenarioNumbers = [...new Set(allScenarios.map(s => s.scenarioNumber))];
+    scenarioSelect.innerHTML = '<option value="">-- Select Scenario --</option>';
+    scenarioNumbers.forEach(num => {
+        const option = document.createElement("option");
+        option.value = num;
+        option.textContent = num;
+        scenarioSelect.appendChild(option);
+    });
+
+    const savedScenario = localStorage.getItem("selectedScenario");
+    const savedCasualty = localStorage.getItem("selectedCasualty");
+
+    if (savedScenario) {
+        scenarioSelect.value = savedScenario;
+        updateCasualtyDropdown(savedScenario, savedCasualty);
+    }
+    if (savedScenario && savedCasualty) {
+        displaySelectedCasualty(savedCasualty, savedScenario);
+    }
 });
 
-// Update casualty dropdown based on scenario
-scenarioSelect.addEventListener("change", updateCasualtyDropdown);
-casualtySelect.addEventListener("change", () => {
-    displaySelectedCasualty(casualtySelect.value, scenarioSelect.value);
-});
-
-function updateCasualtyDropdown() {
-    const selectedScenario = scenarioSelect.value;
-    casualtySelect.innerHTML = "<option value=''>-- Select Casualty --</option>";
-    if (!selectedScenario) return;
+function updateCasualtyDropdown(selectedScenario, selectedCasualty = null) {
     const casualties = allScenarios
-        .filter(s => s.scenarioNumber.toString() === selectedScenario)
-        .map(s => s.casualtyNumber);
-    [...new Set(casualties)].forEach(n => casualtySelect.appendChild(new Option(n, n)));
+        .filter(s => s.scenarioNumber === selectedScenario)
+        .map(s => s.casualtyName);
+
+    const uniqueCasualties = [...new Set(casualties)];
+
+    casualtySelect.innerHTML = '<option value="">-- Select Casualty --</option>';
+    uniqueCasualties.forEach(name => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        casualtySelect.appendChild(option);
+    });
+
+    if (selectedCasualty && uniqueCasualties.includes(selectedCasualty)) {
+        casualtySelect.value = selectedCasualty;
+    }
+
     clearDisplay();
 }
 
-// Display casualty info
+scenarioSelect.addEventListener('change', () => {
+    localStorage.setItem("selectedScenario", scenarioSelect.value);
+    updateCasualtyDropdown(scenarioSelect.value);
+});
+
+casualtySelect.addEventListener('change', () => {
+    localStorage.setItem("selectedCasualty", casualtySelect.value);
+    displaySelectedCasualty(casualtySelect.value, scenarioSelect.value);
+});
+
 function displaySelectedCasualty(selectedCasualty, selectedScenario) {
     const match = allScenarios.find(s =>
-        s.scenarioNumber.toString() === selectedScenario &&
-        s.casualtyNumber.toString() === selectedCasualty
+        s.scenarioNumber === selectedScenario &&
+        s.casualtyName === selectedCasualty
     );
-    if (!match) return clearDisplay();
+
+    if (!match) return;
 
     displayScenario.textContent = match.scenarioNumber;
-    displayCasualty.textContent = match.visibility?.casualtyName ? match.casualtyName : "";
+    displayCasualty.textContent = match.casualtyName;
 
     displayInjuries.innerHTML = "";
-    if (match.visibility?.injuries && match.injuryLocations) {
-        match.injuryLocations.forEach((loc, idx) => {
+
+    if (match.visibility?.injuries) {
+        match.injuries.forEach(injury => {
+
             const div = document.createElement("div");
             div.style.marginBottom = "10px";
-            div.innerHTML = `<strong>${loc || match.injuries[idx]}</strong>`;
+            div.innerHTML = `<strong>${injury}</strong><br>`;
+
+            const img = document.createElement("img");
+            img.style.width = "150px";
+
+            const lower = injury.toLowerCase();
+
+            // ✅ SMART MATCHING (allows "Bee sting", "Severe abrasion", etc.)
+            let matchedKey = Object.keys(injuryImages).find(key =>
+                lower.includes(key)
+            );
+
+            if (matchedKey) {
+                img.src = injuryImages[matchedKey];
+                div.appendChild(img);
+            }
+
             displayInjuries.appendChild(div);
         });
     }
@@ -150,5 +226,6 @@ function clearDisplay() {
     displayLastMeal.textContent = '';
 }
 </script>
+
 </body>
 </html>
