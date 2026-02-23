@@ -79,7 +79,7 @@ const reloadBtn = document.getElementById("reloadBtn");
 
 let allScenarios = [];
 
-/* ✅ FIXED: Injury image mapping (same as trainer page) */
+// Injury image mapping
 const injuryImages = {
   abrasion: "images/abrasion.png",
   allergic: "images/allergic.png",
@@ -103,6 +103,31 @@ const injuryImages = {
   sprain: "images/sprain.png",
   strain: "images/strain.png",
   third: "images/third.png",
+};
+
+// 🔹 NEW: Text descriptions for injuries without images
+const injuryDescriptions = {
+  abrasion: "Superficial scrape on the skin.",
+  allergic: "Signs of allergic reaction such as swelling or rash.",
+  amputation: "Complete or partial loss of a limb.",
+  avulsion: "Skin or tissue torn away from the body.",
+  bee: "Bee sting causing localized pain and swelling.",
+  closed: "Closed fracture without open wound.",
+  contusion: "Bruising due to blunt force trauma.",
+  exhaustion: "Heat exhaustion symptoms such as dizziness and sweating.",
+  first: "First-degree burn affecting outer layer of skin.",
+  incision: "Clean cut caused by sharp object.",
+  laceration: "Deep cut or tear in skin.",
+  open: "Open fracture with visible wound.",
+  penetrating: "Object piercing through body tissue.",
+  pregnant: "Casualty is pregnant.",
+  puncture: "Small deep wound caused by sharp object.",
+  second: "Second-degree burn with blistering.",
+  shock: "Signs of shock such as pale skin and weak pulse.",
+  snake: "Snake bite with possible venom exposure.",
+  sprain: "Ligament injury causing swelling and pain.",
+  strain: "Muscle or tendon injury.",
+  third: "Third-degree burn affecting deeper tissues."
 };
 
 // Reload page while keeping selections
@@ -140,7 +165,6 @@ onSnapshot(q, snapshot => {
 });
 
 function updateCasualtyDropdown(selectedScenario, selectedCasualty = null) {
-
     const casualties = allScenarios
         .filter(s => s.scenarioNumber === selectedScenario)
         .map(s => s.casualtyNumber);
@@ -148,7 +172,6 @@ function updateCasualtyDropdown(selectedScenario, selectedCasualty = null) {
     const uniqueCasualties = [...new Set(casualties)];
 
     casualtySelect.innerHTML = '<option value="">-- Select Casualty --</option>';
-
     uniqueCasualties.forEach(num => {
         const option = document.createElement("option");
         option.value = num;
@@ -187,39 +210,52 @@ function displaySelectedCasualty(selectedCasualty, selectedScenario) {
 
     displayInjuries.innerHTML = "";
 
-if (match.visibility?.injuries) {
+    if (match.visibility?.injuries) {
+        match.injuries.forEach((injury, index) => {
+            const div = document.createElement("div");
+            div.style.marginBottom = "10px";
 
-    match.injuries.forEach((injury, index) => {
+            // Show location instead of injury name
+            const location = match.injuryLocations?.[index] || "";
+            div.innerHTML = `<strong>${location}</strong><br>`;
 
-        const div = document.createElement("div");
-        div.style.marginBottom = "10px";
+            const lower = injury.toLowerCase();
+            let matchedKey = Object.keys(injuryImages).find(key => lower.includes(key));
 
-        // 🔥 SHOW LOCATION INSTEAD OF INJURY NAME
-        const location = match.injuryLocations?.[index] || "";
-        div.innerHTML = `<strong>${location}</strong><br>`;
+            if (matchedKey) {
+                const img = document.createElement("img");
+                img.src = injuryImages[matchedKey];
+                img.style.width = "150px";
 
-        const img = document.createElement("img");
-        img.style.width = "150px";
+                // If image fails to load, show text description instead
+                img.onerror = () => showTextDescription(div, injury, lower);
 
-        const lower = injury.toLowerCase();
+                div.appendChild(img);
+            } else {
+                // No image mapping, show text description
+                showTextDescription(div, injury, lower);
+            }
 
-        let matchedKey = Object.keys(injuryImages).find(key =>
-            lower.includes(key)
-        );
-
-        if (matchedKey) {
-            img.src = injuryImages[matchedKey];
-            div.appendChild(img);
-        }
-
-        displayInjuries.appendChild(div);
-    });
-}
+            displayInjuries.appendChild(div);
+        });
+    }
 
     displayWhatHappened.textContent = match.visibility?.whatHappened ? match.whatHappened : "";
     displayMedicalHistory.textContent = match.visibility?.medicalHistory ? match.medicalHistory : "";
     displayAllergies.textContent = match.visibility?.allergies ? match.allergies : "";
     displayLastMeal.textContent = match.visibility?.lastMeal ? match.lastMeal : "";
+}
+
+// Helper function to show text description when no image
+function showTextDescription(container, injury, lower) {
+    const textDiv = document.createElement("div");
+    textDiv.style.padding = "10px";
+    textDiv.style.backgroundColor = "#f8f8f8";
+    textDiv.style.border = "1px solid #ccc";
+    textDiv.style.marginTop = "5px";
+
+    textDiv.innerHTML = `<strong>${injury}</strong><br>${injuryDescriptions[lower] || "Visible injury observed."}`;
+    container.appendChild(textDiv);
 }
 
 function clearDisplay() {
