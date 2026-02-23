@@ -1,3 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trainer Feedback</title>
+    <link rel="icon" href="data:,"> <!-- prevents favicon 404 -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>Trainer Feedback</h1>
+
+<div id="feedbackContainer"></div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getFirestore, collection, query, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
@@ -20,11 +40,13 @@ const q = query(collection(db, "scenarios"));
 
 onSnapshot(q, snapshot => {
 
+    if (!feedbackContainer) return;
+
     feedbackContainer.innerHTML = "";
 
     const grouped = {};
 
-    // 🔹 STEP 1: GROUP DATA
+    // GROUP DATA
     snapshot.forEach(docSnap => {
 
         const data = docSnap.data();
@@ -34,30 +56,22 @@ onSnapshot(q, snapshot => {
         const scenario = data.scenarioNumber;
         const casualty = data.casualtyNumber;
 
-        if (!grouped[scenario]) {
-            grouped[scenario] = {};
-        }
-
+        if (!grouped[scenario]) grouped[scenario] = {};
         if (!grouped[scenario][casualty]) {
-            grouped[scenario][casualty] = {
-                injuries: {}
-            };
+            grouped[scenario][casualty] = { injuries: {} };
         }
 
         const injuries = data.injuries || [];
 
         injuries.forEach(injury => {
-
             grouped[scenario][casualty].injuries[injury] = {
                 feedback: data.feedback?.[injury] || "",
                 rubric: data.rubric?.[injury] || []
             };
-
         });
     });
 
-    // 🔹 STEP 2: RENDER GROUPED STRUCTURE
-
+    // RENDER STRUCTURE
     Object.keys(grouped).sort().forEach(scenario => {
 
         const scenarioDiv = document.createElement("div");
@@ -128,3 +142,6 @@ onSnapshot(q, snapshot => {
 
 });
 </script>
+
+</body>
+</html>
