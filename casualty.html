@@ -256,7 +256,9 @@ function showTextDescription(container, injury, lower) {
     textDiv.style.border = "1px solid #ccc";
     textDiv.style.marginTop = "5px";
 
-    textDiv.innerHTML = `<strong>${injury}</strong><br>${injuryDescriptions[lower] || "Visible injury observed."}`;
+    // ❗ DO NOT show injury name
+    textDiv.innerHTML = injuryDescriptions[lower] || "Visible injury observed.";
+
     container.appendChild(textDiv);
 }
 
