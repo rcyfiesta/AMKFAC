@@ -77,36 +77,346 @@ let currentDocId = null;
 // Injury images
 const injuryImages = {
   abrasion: "images/abrasion.png",
-  allergic: "images/allergic.png",
+  "allergic reaction (severe)": "images/allergic.png",
   amputation: "images/amputation.png",
   avulsion: "images/avulsion.png",
-  bee: "images/bee.png",
-  closed: "images/closed.png",
+  "bee sting": "images/bee.png",
+  "closed fracture": "images/closed.png",
+  "dislocation": "images/closed.png",
   contusion: "images/contusion.png",
-  exhaustion: "images/exhaustion.png",
-  first: "images/first.png",
+  "heat exhaustion": "images/exhaustion.png",
+  "1st degree burn": "images/first.png",
   incision: "images/incision.png",
   laceration: "images/laceration.png",
-  not: "images/not.png",
-  open: "images/open.png",
-  penetrating: "images/penetrating.png",
-  pregnant: "images/pregnant.png",
-  puncture: "images/puncture.png",
-  second: "images/second.png",
+  "abdominal thrust": "images/not.png",
+  "choking (unconscious)": "images/not.png",
+  "open fracture": "images/open.png",
+  "penetrating object": "images/penetrating.png",
+  "chest thrust": "images/pregnant.png",
+  "puncture wound": "images/puncture.png",
+  "2nd degree burn": "images/second.png",
   shock: "images/shock.png",
-  snake: "images/snake.png",
+  "snake bite": "images/snake.png",
   sprain: "images/sprain.png",
   strain: "images/strain.png",
-  third: "images/third.png",
+  "3rd degree burn": "images/third.png",
+  "scorpion sting": "images/scorpion.png",
+  "jellyfish sting": "images/jellyfish.png",
+  "animal bite": "images/animal.png",
+  "electrical burn": "images/electrical.png",
+  "epistaxis (nose bleed)": "images/nose.png",
 };
 
 // Rubric
 const injuryRubric = {
-  abrasion: ["Pour saline water on abrasion", "Clean using gauze in ONE circular motion from INNER to OUTER of wound", "Dry the wound with a gauze", "Cover with gauze", "Tape all 4 sides using micropore tape"],
-  "allergic reaction (severe)": ["Call SCDF 995", "Are you having an allergic reaction?", "I am a first aider, I can help you", "Do you have any medication with you?", "Remove the blue safety cap", "Position orange part at 90 to the outer mid thigh", "Swing and jab it into thigh and hold for 10 seconds", "Remove the EpiPen and massage area for 10 seconds", "Monitor breathing and consciousness every 2 minutes"],
-  amputation: ["Call SCDF 995", "Use a pressure pad to apply direct pressure", "Apply a tourniquet", "Record time you applied the tourniquet and inform paramedics", "Treat for shock", "Wrap part in clean dry gauze", "Place in small bag", "Place the small bag in another bag/container, filled with ice", "Label the bag with name of casualty and time found"],
-  avulsion: ["Use gauze to cover injury", "Bandage to secure gauze and apply pressure to reduce bleeding", "Take any detached skin to hospital"],
-  "bee sting": ["Flick the stinger out using a card OR pull out using tweezers", "Ice the area for 10 - 15 minutes (if in mouth ask casualty suck on ice or sip cold water)", "Monitor for allergic reaction, breathing and consciousness", "Tell casualty see doctor if pain and swelling persists"],
+concussion: [
+  "Call SCDF 995",
+  "Start DRSABC",
+  "If fluid coming out of nose/ears, turn the casualty head so that affected nostril/ear lower than the unaffected one",
+  "Check breathing and consciousness every 2 minutes"
+],
+
+compression: [
+  "Call SCDF 995",
+  "Start DRSABC",
+  "If fluid coming out of nose/ears, turn the casualty head so that affected nostril/ear lower than the unaffected one",
+  "Check breathing and consciousness every 2 minutes"
+],
+
+"skull fracture": [
+  "Call SCDF 995",
+  "Start DRSABC",
+  "If fluid coming out of nose/ears, turn the casualty head so that affected nostril/ear lower than the unaffected one",
+  "Check breathing and consciousness every 2 minutes"
+],
+
+"spinal injury": [
+  "Call SCDF 995",
+  "Tell casualty don't move head",
+  "Place items around head to immobilise it"
+],
+
+"heat cramp": [
+  "Stop activity and move to cool place",
+  "Encourage drink water/isotonic drink",
+  "Stretch the affected limb",
+  "Rest for at least 2 hours"
+],
+
+"heat exhaustion": [
+  "Move to cool place",
+  "Loosen clothing",
+  "Fan/cool the casualty",
+  "Encourage drink water/isotonic drink",
+  "Check breathing and consciousness every 2 minutes"
+],
+
+"heat stroke": [
+  "Call SCDF 995",
+  "Move to cool place",
+  "Start DRSABC",
+  "Place ice pack (not directly on skin) at neck, under armpit, at groin",
+  "Check breathing and consciousness every 2 minutes",
+  "Recovery position"
+],
+
+fits: [
+  "Lower casualty carefully to lie down",
+  "Protect the head",
+  "Time the seizure (if >5 mins, call SCDF 995)",
+  "Place in recovery position after seizure stops",
+  "Do not restrain or hold the casualty",
+  "Do not insert anything into the mouth"
+],
+
+fainting: [
+  "Lay casualty on the floor",
+  "Elevate legs (IF NOT FRACTURES)",
+  "Loosen clothing",
+  "Check breathing and consciousness every 2 minutes"
+],
+
+shock: [
+  "DRSABC",
+  "Call SCDF 995",
+  "Elevate legs",
+  "Cover the casualty with blanket",
+  "Treat the severe bleeding"
+],
+
+"hypoglycaemia/low blood sugar": [
+  "Give sweet drink if casualty can drink",
+  "DRSABC if casualty turns unconscious",
+  "Check breathing and consciousness every 2 minutes"
+],
+
+stroke: [
+  "Face weakness: Ask casualty to smile",
+  "Arm weakness: Ask casualty to raise both arms",
+  "Speech slurring: Ask casualty for name",
+  "Time to call SCDF 995",
+  "Recovery position",
+  "DRSABC if casualty turns unconscious"
+],
+
+"abdominal thrust": [
+  "Casualty unable to speak, breathe, cough, universal sign of choking",
+  "\"Are you choking?\"",
+  "\"Are you able to cough?\"",
+  "\"I am a first aider, I can help you\"",
+  "Locate belly button using ring finger",
+  "Place middle and index finger above ring finger",
+  "Form a fist with thumb inside",
+  "Place fist above index finger (thumb side facing casualty)",
+  "Lean casualty forward",
+  "Cup the fist with other hand",
+  "Do inward and upward thrust",
+  "Repeat until foreign body comes out OR casualty turns unconscious"
+],
+
+"chest thrust": [
+  "Casualty unable to speak, breathe, cough, universal sign of choking",
+  "\"Are you choking?\"",
+  "\"Are you able to cough?\"",
+  "\"I am a first aider, I can help you\"",
+  "2 arms straightened at casualty's armpit",
+  "Lift casualty's arm upwards",
+  "Form a fist with thumb inside",
+  "Place fist at centre of chest (thumb side facing casualty)",
+  "Cup the fist with other hand",
+  "Do backwards thrust",
+  "Repeat until foreign body comes out OR casualty turns unconscious"
+],
+
+"choking (unconscious)": [
+  "Call SCDF 995",
+  "Shout for ATL to get AED",
+  "Start 30 chest compressions",
+  "Check for foreign body",
+  "If no foreign body seen, repeat 30 chest compressions then check again",
+  "If foreign body seen, open mouth and use index finger to scoop out",
+  "After foreign body is out, check breathing",
+  "Recovery position after breathing returns",
+  "Monitor breathing and consciousness every 2 minutes"
+],
+
+asthma: [
+  "\"Are you having an asthma attack?\"",
+  "\"I'm a first aider, I can help you\"",
+  "\"Do you have your inhaler?\"",
+  "\"Do you need assistance with your inhaler?\"",
+  "Shake inhaler 3 - 5 seconds",
+  "Give 1 puff, casualty breathes normally for 1 minute",
+  "If still attack, repeat from shaking inhaler",
+  "After 4 puffs, if still attack, call SCDF 995"
+],
+
+hyperventilation: [
+  "Reassure casualty",
+  "Bring casualty to quiet place",
+  "\"Breathe innnnn, breathe outtt\" (guide slow breathing)"
+],
+
+"allergic reaction (severe)": [
+  "Call SCDF 995",
+  "\"Are you having an allergic reaction?\"",
+  "\"I am a first aider, I can help you\"",
+  "\"Do you have any medication with you?\"",
+  "Remove the blue safety cap",
+  "Position orange part at 90° to the outer mid thigh",
+  "Swing and jab into thigh, hold for 10 seconds",
+  "Remove EpiPen and massage area for 10 seconds",
+  "Monitor breathing and consciousness every 2 minutes"
+],
+
+contusion: [
+  "Rest and ice area for 10 - 15 minutes"
+],
+
+abrasion: [
+  "Pour saline water on abrasion",
+  "Clean using gauze in ONE circular motion from INNER to OUTER of wound",
+  "Dry the wound with gauze",
+  "Clean using at least 3 gauze"
+],
+
+incision: [
+  "Use gauze/pressure pad to cover injury",
+  "Bandage to secure and apply pressure to reduce bleeding"
+],
+
+laceration: [
+  "Use gauze/pressure pad to cover injury",
+  "Bandage to secure and apply pressure to reduce bleeding"
+],
+
+avulsion: [
+  "Call SCDF 995",
+  "Use gauze/pressure pad to cover injury",
+  "Bandage to secure and apply pressure",
+  "Take any detached skin to hospital"
+],
+
+"penetrating object": [
+  "Call SCDF 995",
+  "Secure embedded object using 2 triangular bandages",
+  "Bandage area to immobilise object"
+],
+
+amputation: [
+  "Call SCDF 995",
+  "Use pressure pad to apply direct pressure",
+  "Apply tourniquet",
+  "Record time applied and inform paramedics",
+  "Treat for shock",
+  "Wrap amputated part in clean dry gauze",
+  "Place in small bag",
+  "Place small bag in another bag/container filled with ice",
+  "Label bag with casualty name and time found"
+],
+
+"bee sting": [
+  "Flick stinger out using card OR pull with tweezers",
+  "Ice area 10 - 15 minutes",
+  "Monitor for allergic reaction, breathing and consciousness",
+  "See doctor if pain/swelling persists"
+],
+
+"scorpion sting": [
+  "Call SCDF 995",
+  "Keep area lower than heart level",
+  "Ice area 10 - 15 minutes",
+  "Monitor breathing and consciousness"
+],
+
+"snake bite": [
+  "Call SCDF 995 and give description of snake",
+  "Keep area lower than heart level",
+  "Apply tight bandage 4 finger space above wound",
+  "Immobilise limb",
+  "Check breathing and consciousness every 2 minutes"
+],
+
+"jellyfish sting": [
+  "Call SCDF 995",
+  "Pour large amount of vinegar or seawater",
+  "Immerse in warm water",
+  "Monitor breathing and consciousness every 2 minutes"
+],
+
+"animal bite": [
+  "Call SCDF 995",
+  "Wash under running water until clean",
+  "Bandage after cleaning"
+],
+
+strain: [
+  "Rest area",
+  "Ice 10 - 15 minutes (no direct contact)",
+  "Compress with bandage",
+  "Elevate area"
+],
+
+sprain: [
+  "Remove footwear if any",
+  "Rest area",
+  "Ice 10 - 15 minutes (no direct contact)",
+  "Compress with bandage",
+  "Elevate area"
+],
+
+"muscle cramp": [
+  "Stretch the area"
+],
+
+"1st degree burn": [
+  "Remove constrictors",
+  "Cool under running water for at least 10 minutes",
+  "Cover with bandage",
+  "Consult doctor"
+],
+
+"2nd degree burn": [
+  "Remove constrictors",
+  "Cool under running water for at least 10 minutes",
+  "Cover with bandage",
+  "Consult doctor"
+],
+
+"3rd degree burn": [
+  "Call SCDF 995",
+  "Cover with bandage",
+  "Treat for shock if needed"
+],
+
+"chemical burn": [
+  "Call SCDF 995 and inform chemicals involved",
+  "Remove contaminated clothing",
+  "Cool under running water for 15 - 20 minutes"
+],
+
+"electrical burn": [
+  "Call SCDF 995",
+  "Move source of danger away (do NOT use hands)",
+  "Treat for shock",
+  "Cover wounds",
+  "Monitor breathing and consciousness every 2 minutes"
+],
+
+"sun burn": [
+  "Move to cool shaded area",
+  "Cover affected areas with clothing",
+  "Give water",
+  "Dab water on affected areas"
+],
+
+"epistaxis (nose bleed)": [
+  "Sit casualty up",
+  "Pinch fleshy part of nose for 10 minutes",
+  "Lean forward",
+  "Breathe through mouth",
+  "If bleeding >1 hour, consult doctor"
+]
 };
 
 // Load scenarios

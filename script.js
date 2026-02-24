@@ -19,12 +19,12 @@ const injuryOptions = [
 "Avulsion","Bee Sting","Bleeding","Chest Thrust","Choking (Unconscious)",
 "Closed Fracture","Contusion","Dislocation","Epistaxis (Nose Bleed)",
 "Fainting","Heat Cramp","Heat Exhaustion","Heat Stroke","Hyperventilation",
-"Incision","Laceration","Muscle Cramp","Open Fracture","Partial Choking",
+"Incision","Laceration","Muscle Cramp","Open Fracture","Partial Choking", "Puncture Wound",
 "Snake Bite","Sprain","Strain","Stroke","Amputation","Animal Bite",
 "Chemical Burn","Compression","Concussion","Electrical Burn","Fits",
 "Foreign Bodies in Eye","Hypoglycaemia/Low Blood Sugar","Jellyfish Sting",
-"Penetrating Eye Injury","Penetrating Object","Scorpion Sting","Shock",
-"Skull Fracture","Spinal Injury","Sun Burn"
+"Penetrating Object","Scorpion Sting","Shock",
+"Spinal Injury","Sun Burn"
 ];
 
 const siteOptions = [
