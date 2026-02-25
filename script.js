@@ -14,7 +14,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const injuryOptions = [
-"CPR","AED","1st Degree Burn","2nd Degree Burn","3rd Degree Burn",
+"CPR + AED","1st Degree Burn","2nd Degree Burn","3rd Degree Burn",
 "Abdominal Thrust","Abrasion","Allergic Reaction (Severe)","Asthma",
 "Avulsion","Bee Sting","Bleeding","Chest Thrust","Choking (Unconscious)",
 "Closed Fracture","Contusion","Dislocation","Epistaxis (Nose Bleed)",
