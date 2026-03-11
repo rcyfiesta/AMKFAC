@@ -16,7 +16,7 @@ const db = getFirestore(app);
 const injuryOptions = [
 "CPR + AED","1st Degree Burn","2nd Degree Burn","3rd Degree Burn",
 "Abdominal Thrust","Abrasion","Allergic Reaction (Severe)","Asthma",
-"Avulsion","Bee Sting","Bleeding","Chest Thrust","Choking (Unconscious)",
+"Avulsion","Bee Sting","Chest Thrust","Choking (Unconscious)",
 "Closed Fracture","Contusion","Dislocation","Epistaxis (Nose Bleed)",
 "Fainting","Heat Cramp","Heat Exhaustion","Heat Stroke","Hyperventilation",
 "Incision","Laceration","Muscle Cramp","Open Fracture","Partial Choking", "Puncture Wound",
